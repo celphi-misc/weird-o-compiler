@@ -1,5 +1,5 @@
-c_token: c_token.lex
-	flex c_token.lex
+c_token: c_token.l
+	flex c_token.l
 	gcc -o c_token lex.yy.c
 
 clean:
