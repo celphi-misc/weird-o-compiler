@@ -4,12 +4,13 @@ CC=gcc
 RM=rm
 
 LEX_FLAGS=
-YACC_FLAGS=-v -t -d
+YACC_FLAGS=-vtd
 CCLIBS=-ll -ly -lm
+CCWARN=-Wall
 
 SCANNER=scanner
 PARSER=parser
-OBJS=$(SCANNER).o $(PARSER).o
+OBJS=$(PARSER).o $(SCANNER).o
 
 TARGET=woc
 
@@ -18,12 +19,15 @@ $(TARGET): $(OBJS)
 	$(CC) $(OBJS) -o $(TARGET) $(CCLIBS)
 
 %.o: %.c
-	$(CC) -Wall $*.c -c $(CCLIBS)
-$(PARSER).h: $(PARSER).y
+	$(CC) $(CCWARN) $*.c -c $(CCLIBS)
 $(PARSER).c: $(PARSER).y
 	$(YACC) $(YACC_FLAGS) -o $(PARSER).c $(PARSER).y
 $(SCANNER).c: $(SCANNER).l
 	$(LEX) $(LEX_FLAGS) -o $(SCANNER).c $(SCANNER).l
+$(PARSER).h: $(PARSER).y
+$(SCANNER).h: $(SCANNER).l
+$(PARSER).o: $(SCANNER.h)
+$(SCANNER).o: $(PARSER.h)
 
 clean:
 	rm -rf $(SCANNER).c $(PARSER).h $(PARSER).c $(OBJS) $(TARGET)

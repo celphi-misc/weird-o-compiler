@@ -45,6 +45,7 @@
 *.idb
 *.pdb
 
+woc
 lex.yy.c
 parser.c
 parser.h

@@ -1,0 +1,97 @@
+## C scanner checklist
+- [x] "/*"
+- [o] "auto"
+- [x] "break"
+- [x] "case"
+- [o] "char"
+- [o] "const"
+- [x] "continue"
+- [x] "default"
+- [x] "do"
+- [o] "double"
+- [x] "else"
+- [o] "enum"
+- [o] "extern"
+- [o] "float"
+- [x] "for"
+- [x] "goto"
+- [x] "if"
+- [o] "int"
+- [o] "long"
+- [o] "register"
+- [x] "return"
+- [o] "short"
+- [o] "signed"
+- [o] "sizeof"
+- [o] "static"
+- [o] "struct"
+- [x] "switch"
+- [o] "typedef"
+- [o] "union"
+- [o] "unsigned"
+- [o] "void"
+- [o] "volatile"
+- [x] "while"
+- [x] {L}({L}|{D})*
+- [x] 0[xX]{H}+{IS}?
+- [x] 0{D}+{IS}?
+- [x] {D}+{IS}?
+- [x] L?'(\\.|[^\\'])+'
+- [x] {D}+{E}{FS}?
+- [x] {D}*"."{D}+({E})?{FS}?
+- [x] {D}+"."{D}*({E})?{FS}?
+- [x] L?\"(\\.|[^\\"])*\"
+- [ ] "..."
+- [ ] ">>="
+- [ ] "<<="
+- [ ] "+="
+- [ ] "-="
+- [ ] "*="
+- [ ] "/="
+- [ ] "%="
+- [ ] "&="
+- [ ] "^="
+- [ ] "|="
+- [ ] ">>"
+- [ ] "<<"
+- [ ] "++"
+- [ ] "--"
+- [ ] "->"
+- [ ] "&&"
+- [ ] "||"
+- [ ] "<="
+- [ ] ">="
+- [ ] "=="
+- [ ] "!="
+- [ ] ";"
+- [ ] ("{"|"<%")
+- [ ] ("}"|"%>")
+- [ ] ","
+- [ ] ":"
+- [ ] "="
+- [ ] "("
+- [ ] ")"
+- [ ] ("["|"<:")
+- [ ] ("]"|":>")
+- [ ] "."
+- [ ] "&"
+- [ ] "!"
+- [ ] "~"
+- [ ] "-"
+- [ ] "+"
+- [ ] "*"
+- [ ] "/"
+- [ ] "%"
+- [ ] "<"
+- [ ] ">"
+- [ ] "^"
+- [ ] "|"
+- [ ] "?"
+- [ ] [ \t\v\n\f]
+- [ ] .
+
+## Ref
+* https://github.com/soshimozi/Compiler
+* [ANSI C grammar, Lex specification](http://www.lysator.liu.se/c/ANSI-C-grammar-l.html)
+* [C-- Language Specification](https://www2.cs.arizona.edu/~debray/Teaching/CSc453/DOCS/cminusminusspec.html)
+* [The syntax of C in Backus-Naur Form](https://cs.wmich.edu/~gupta/teaching/cs4850/sumII06/The%20syntax%20of%20C%20in%20Backus-Naur%20form.htm)
