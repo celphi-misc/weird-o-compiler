@@ -46,3 +46,6 @@
 *.pdb
 
 lex.yy.c
+parser.c
+parser.h
+scanner.c
