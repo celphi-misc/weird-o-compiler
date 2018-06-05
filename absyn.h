@@ -1,5 +1,5 @@
-#ifndef SEMANTIC_H_
-#define SEMENTIC_H_
+#ifndef ABSYNTAX_H_
+#define ABSYNTAX_H_
 
 #include "sem_types.h"
 

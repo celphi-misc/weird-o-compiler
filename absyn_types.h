@@ -1,5 +1,5 @@
-#ifndef SEM_TYPES_H
-#define SEM_TYPES_H
+#ifndef ABSYN_TYPES_H
+#define ABSYN_TYPES_H
 
 typedef int A_pos;
 typedef struct symbol_* A_symbol;
