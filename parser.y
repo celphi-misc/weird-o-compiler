@@ -107,6 +107,9 @@ stmts           : stmt SEM stmts            {}
 stmt            : declaration               {}
                 | if_stmt                   {}
                 | switch_stmt               {}
+                | CAS CLN stmt              {}
+                | DFT CLN stmt              {}
+ /* label  */   | ID CLN stmt               {}
                 | for_stmt                  {}
                 | while_stmt                {}
                 | do_stmt                   {}

@@ -1,46 +1,85 @@
 #ifndef ABSYN_TYPES_H
 #define ABSYN_TYPES_H
 
+// line position
 typedef int A_pos;
-typedef struct symbol_* A_symbol;
-struct symbol_{
+typedef struct function_* A_func;
+struct function_ {
     char* name;
-    A_symbol next;
-};
-
-// suppose the variables has no type
-typedef struct var_* A_var;
-struct var_{
     A_pos pos;
-    A_symbol name;
+    A_func next;
 };
+A_func funcList;
 
-// function return
-// if else
+typedef struct var_* A_var;
+struct var_ {
+    char* name;
+    A_pos pos;
+    A_var next;
+};
+A_var varList;
+
+typedef struct field_id_* A_field;
+struct field_id_{
+    int id;
+    A_pos pos;
+    A_field sibling;
+    A_field child;
+    A_field father;
+};
+int fieldNum = 0;
+A_field fieldTree;
+
+typedef struct label_* A_label;
+struct label_ {
+    char* name;
+    A_pos pos;
+    A_label next;
+};
+A_label labelList;
+
+// empty-expression
+// sequence-of-exps block-of-exps
+// variable-expression variable-declaration
+// function-dec function-call return
+// if-else
 // for while do break continue goto
+// switch case default
 // binop assign
-// constants: number, char, string
+// unaryOp(pre, post)
+// factor: int, float, string
 typedef struct exp_* A_exp;
 struct exp_{
-    enum{ A_callExp, A_returnExp, A_ifExp, 
-        A_forExp, A_whileExp, A_breakExp, A_continueExp, A_gotoExp, 
+    enum{ A_nullExp, A_seqExp, A_blockExp, A_varExp, A_varDecExp,
+        A_funcDecExp, A_funcCallExp, A_returnExp, A_ifExp, 
+        A_forExp, A_whileExp, A_doExp, A_breakExp, A_continueExp, A_gotoExp, 
         A_switchExp, A_caseExp, A_defaultExp,
-        A_opExp, A_assignExp, A_constExp} kind;
+        A_opExp, A_assignExp, A_preUnaryExp, A_postUnaryExp,
+        A_factorExp} kind;
     A_pos pos;
     union {
-        struct { A_symbol name; A_expList list; } call;
-        struct { A_var var; } reternn;
+        // null exp: no content
+        struct { A_expList list; } seq;
+        struct { A_field field; A_expList list; } block;
+        struct { A_var name; } var;
+        struct { A_var name; A_exp init; } varDec;
+        struct { A_func func; A_exp block;} funcDec;
+        struct { A_func func; } call;
+        struct { A_exp returnn; } reternn;
         struct { A_exp test, then, elsee; } iff;
-        struct { A_exp test, body; } whilee;
-        struct { A_exp init, escape, iter; } forr;
+        struct { A_exp init, escape, iter, block; } forr;
+        struct { A_exp test, block; } whilee;
+        struct { A_exp block, test; } doo;
         // break, continue: no content
         struct { A_label label; } gotoo;
-        struct { A_var switched; A_exp casee, defaultt; } switchh;
-        struct { A_exp constExp, body; } casee;
-        struct { A_exp body; } defaultt;
+        struct { A_exp switched; A_exp casee, defaultt; } switchh;
+        struct { A_exp factor, block; } casee;
+        struct { A_exp block; } defaultt;
         struct { A_op operatorr; A_exp left, right; } op;
-        struct { A_var left; A_exp right; } assign;
-        struct { A_value value; } constt;
+        struct { A_op operatorr; A_var left; A_exp right; } assign;
+        struct { A_op operatorr; A_exp right; } preUnaryExp;
+        struct { A_exp left; A_op operatorr; } postUnaryExp;
+        struct { A_value value; } factor;
     } u;
 };
 
@@ -51,20 +90,22 @@ struct expList_{
     A_expList next;
 };
 
-// goto label
-typedef struct label_* A_label;
-struct label_{
-    A_pos pos;
-    A_symbol label;
-};
-
-// binary operations
-typedef enum {A_plusOp, A_minusOp, A_timesOp, A_divideOp,
-        A_eqOp, A_neqOp, A_ltOp, A_leOp, A_gtOp, A_geOp} A_op;
+// operators
+// + - * / %
+// && || 
+// & | ^
+// = != > >= < <=
+// += -= *= /= %=
+// &= ^= |= << >>
+// ++ -- ! ~
+typedef enum {A_plusOp, A_minusOp, A_timesOp, A_divideOp, A_modOp, 
+        A_andOP, A_orOp, A_bAndOp, A_bOrOp, A_bXorOp, 
+        A_eqOp, A_neqOp, A_ltOp, A_leOp, A_gtOp, A_geOp,
+        A_addAsnOp, A_subAsnOp, A_mulAsnOp, A_divAsnOp, A_modAsnOp,
+        A_bAndAsnOp, A_bXorAsnOp, A_bOrAsnOp, A_bRshiftOp, A_bLshiftOp,
+        A_incOp, A_decOp, A_notOp, A_bNotOp } A_op;
 
 // const values
-typedef enum { A_num, A_char, A_string } A_value;
-
-// fields
+typedef enum { A_int, A_float, A_string } A_value;
 
 #endif
