@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "parser.h"
-#include "token.h"
 
 // Curent column number
 int yycolumn = 1;
