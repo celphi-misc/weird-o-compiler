@@ -1,7 +1,7 @@
 #ifndef ABSYNTAX_H_
 #define ABSYNTAX_H_
 
-#include "sem_types.h"
+#include "absyn_types.h"
 
 // interfaces for reduction
 
