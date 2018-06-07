@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "parser.h"
+#include "absyn.h"
 
 extern FILE *yyin;
 
@@ -191,101 +192,101 @@ bitwise_asn     : B_AND_ASN                 {}
                 ;
 
  /* ? : */
-cond_exp        : exps QUE exps CLN exps    {}
+cond_exp        : exps QUE exps CLN exps    { $$ = !!!???XXX@@@ -_-|| }
                 ;
 
  /* 15 */
-simple_exp      : simple_exp OR and_exp     {}
-                | and_exp
+simple_exp      : simple_exp OR and_exp     { $$ = A_OpExp(lineno, A_orOp, $1, $2); }
+                | and_exp                   { $$ = $1; }
                 ;
 
  /* 14 */
-and_exp         : and_exp AND b_or_exp      {}
-                | b_or_exp                  {}
+and_exp         : and_exp AND b_or_exp      { $$ = A_OpExp(lineno, A_andOp, $1, $2); }
+                | b_or_exp                  { $$ = $1; }
                 ;
 
  /* 13 */
-b_or_exp        : b_or_exp B_OR b_xor_exp   {}
-                | b_xor_exp
+b_or_exp        : b_or_exp B_OR b_xor_exp   { $$ = A_OpExp(lineno, A_bOrOp, $1, $2); }
+                | b_xor_exp                 { $$ = $1; }
                 ;
 
  /* 12 */
-b_xor_exp       : b_xor_exp B_XOR b_and_exp {}
-                | b_and_exp
+b_xor_exp       : b_xor_exp B_XOR b_and_exp { $$ = A_OpExp(lineno, A_bXorOp, $1, $2); }
+                | b_and_exp                 { $$ = $1; }
                 ;
 
  /* 11 */
-b_and_exp       : b_and_exp B_AND eq_exp    {}
-                | eq_exp
+b_and_exp       : b_and_exp B_AND eq_exp    { $$ = A_OpExp(lineno, A_bAndOp, $1, $2); }
+                | eq_exp                    { $$ = $1; }
                 ;
 
  /* 10 */
-eq_exp          : eq_exp EQ rel_exp                 {}
-                | eq_exp NEQ rel_exp %prec EQ       {}
-                | rel_exp
+eq_exp          : eq_exp EQ rel_exp                 { $$ = A_OpExp(lineno, A_eqOp, $1, $2); }
+                | eq_exp NEQ rel_exp %prec EQ       { $$ = A_OpExp(lineno, A_neqOp, $1, $2); }
+                | rel_exp                           { $$ = $1; }
                 ;
 
  /* 9 */
-rel_exp         : rel_exp LEQ shift_exp             {}
-                | rel_exp GEQ shift_exp %prec LEQ   {}
-                | rel_exp LE shift_exp %prec LEQ    {}
-                | rel_exp GT shift_exp %prec LEQ    {}
-                | shift_exp                         {}
+rel_exp         : rel_exp LEQ shift_exp             { $$ = A_OpExp(lineno, A_leOp, $1, $2); }
+                | rel_exp GEQ shift_exp %prec LEQ   { $$ = A_OpExp(lineno, A_geOp, $1, $2); }
+                | rel_exp LE shift_exp %prec LEQ    { $$ = A_OpExp(lineno, A_ltOp, $1, $2); }
+                | rel_exp GT shift_exp %prec LEQ    { $$ = A_OpExp(lineno, A_gtOp, $1, $2); }
+                | shift_exp                         { $$ = $1; }
                 ;
 
  /* 7 << >> */
-shift_exp       : shift_exp B_L plus_exp            {}
-                | shift_exp B_R plus_exp %prec B_L  {}
-                | plus_exp
+shift_exp       : shift_exp B_L plus_exp            { $$ = A_OpExp(lineno, A_bLshiftOp, $1, $2); }
+                | shift_exp B_R plus_exp %prec B_L  { $$ = A_OpExp(lineno, A_bRshiftOp, $1, $2); }
+                | plus_exp                          { $$ = $1; }
                 ;
 
  /* 6 */
-plus_exp        : plus_exp ADD mul_exp              {}
-                | plus_exp SUB mul_exp %prec SUB    {}
-                | mul_exp
+plus_exp        : plus_exp ADD mul_exp              { $$ = A_OpExp(lineno, A_plusOp, $1, $2); }
+                | plus_exp SUB mul_exp %prec SUB    { $$ = A_OpExp(lineno, A_minusOp, $1, $2); }
+                | mul_exp                           { $$ = $1; }
                 ;
 
  /* 5 */
-mul_exp         : mul_exp MUL unary_exp             {}
-                | mul_exp DIV unary_exp %prec MUL   {}
-                | mul_exp MOD unary_exp %prec MUL   {}
-                | unary_exp
+mul_exp         : mul_exp MUL unary_exp             { $$ = A_OpExp(lineno, A_timesOp, $1, $2); }
+                | mul_exp DIV unary_exp %prec MUL   { $$ = A_OpExp(lineno, A_divideOp, $1, $2); }
+                | mul_exp MOD unary_exp %prec MUL   { $$ = A_OpExp(lineno, A_modOp, $1, $2); }
+                | unary_exp                         { $$ = $1; }
                 ;
 
  /* 3 */
-unary_exp       : ADD post_unary %prec UNARY    {}
-                | SUB post_unary %prec UNARY    {}
-                | INC post_unary %prec UNARY    {}
-                | DEC post_unary %prec UNARY    {}
-                | NOT post_unary %prec UNARY    {}
-                | B_NOT post_unary %prec UNARY  {}
-                | post_unary %prec UNARY        {}
+unary_exp       : ADD post_unary %prec UNARY    { $$ = A_PreUnaryExp(lineno, A_plusOp, $1); }
+                | SUB post_unary %prec UNARY    { $$ = A_PreUnaryExp(lineno, A_minusOp, $1); }
+                | INC post_unary %prec UNARY    { $$ = A_PreUnaryExp(lineno, A_incOp, $1); }
+                | DEC post_unary %prec UNARY    { $$ = A_PreUnaryExp(lineno, A_decOp, $1); }
+                | NOT post_unary %prec UNARY    { $$ = A_PreUnaryExp(lineno, A_notOp, $1); }
+                | B_NOT post_unary %prec UNARY  { $$ = A_PreUnaryExp(lineno, A_bNotOp, $1); }
+                | post_unary %prec UNARY        { $$ = A_PreUnaryExp(lineno, NULL, $1); }
                 ;
 
  /* 2 */
-post_unary      : factor INC                {}
-                | factor DEC %prec INC      {}
-                | call
-                | factor
+post_unary      : factor INC                { $$ = A_PostUnaryExp(lineno, $1, A_incOp); }
+                | factor DEC %prec INC      { $$ = A_PostUnaryExp(lineno, $1, A_decOp); }
+                | call                      { $$ = A_PostUnaryExp(lineno, $1, NULL); }
+                | factor                    { $$ = A_PostUnaryExp(lineno, $1, NULL); }
                 ;
 
-call            : ID LPAREN args RPAREN     {}
+call            : ID LPAREN args RPAREN     { $$ = A_FuncCallExp(lineno, $1, $2); }
                 ;
 
-args            : arg_list                  {}
-                | /* empty */               {}
+args            : arg_list                  { $$ = A_SeqExp(lineno, $1); }
+                | /* empty */               { $$ = A_NullExp(lineno); }
                 ;
 
-arg_list        : arg CMA arg_list          {}
-                | arg                       {}
+arg_list        : arg CMA arg_list          { $$ = A_ExpList(lineno, $1, $2);}
+                | arg                       { $$ = A_ExpList(lineno, $1, NULL); }
                 ;
 
-arg             : exp                       {}
+arg             : exp                       { $$ = A_VarExp(lineno, $1); }
                 ;
 
-factor          : INT                       {}
-                | FLT                       {}
-                | STR                       {}
+factor          : INT                       { $$ = A_FactorExp(lineno, $1); }
+                | FLT                       { $$ = A_FactorExp(lineno, $1); }
+                | STR                       { $$ = A_FactorExp(lineno, $1); }
  /*               | object */
                 ;
 
