@@ -1,5 +1,5 @@
-#include "absyn_types.h"
 #include "absyn.h"
+#include "absyn_util.h"
 
 A_exp   A_NullExp(A_pos pos){
     A_exp p = checked_malloc(sizeof(*p));
@@ -25,7 +25,7 @@ A_exp   A_BlockExp(A_pos pos, A_field field, A_expList list){
     return p;
 }
 
-A_exp   A_VarExp(A_pos pos, A_var name){
+A_exp   A_VarExp(A_pos pos, char* name){
     A_exp p = checked_malloc(sizeof(*p));
     p->kind = A_varExp;
     p->pos = pos;
@@ -33,21 +33,19 @@ A_exp   A_VarExp(A_pos pos, A_var name){
     return p;
 }
 
-A_exp   A_VarDecExp(A_pos pos, A_var name, A_exp init){
+A_exp   A_VarDecExp(A_pos pos, A_var var){
     A_exp p = checked_malloc(sizeof(*p));
     p->kind = A_varDecExp;
     p->pos = pos;
-    p->u.varDec.name = name;
-    p->u.varDec.init = init;
+    p->u.varDec.var = var;
     return p;
 }
 
-A_exp   A_FuncDecExp(A_pos pos, char* name, A_expList params, A_exp block){
+A_exp   A_FuncDecExp(A_pos pos, A_func func){
     A_exp p = checked_malloc(sizeof(*p));
     p->kind = A_funcDecExp;
     p->pos = pos;
-    p->u.funcDec.func = A_FuncDec(pos, name, params);
-    p->u.funcDec.block = block;
+    p->u.funcDec.func = func;
     return p;
 }
 
@@ -55,7 +53,8 @@ A_exp   A_FuncCallExp(A_pos pos, char* name, A_expList params){
     A_exp p = checked_malloc(sizeof(*p));
     p->kind = A_funcCallExp;
     p->pos = pos;
-    p->u.call.func = A_FuncCall(pos, name, params);
+    p->u.call.name = name;
+    p->u.call.params = params;
     return p;
 }
 
@@ -120,11 +119,19 @@ A_exp   A_ContinueExp(A_pos pos){
     return p;
 }
 
-A_exp   A_GotoExp(A_pos pos, A_label label){
+A_exp   A_LabelExp(A_pos pos, A_label label){
+    A_exp p = checked_malloc(sizeof(*p));
+    p->kind = A_labelExp;
+    p->pos = pos;
+    p->u.label.label = label;
+    return p;
+}
+
+A_exp   A_GotoExp(A_pos pos, char* name){
     A_exp p = checked_malloc(sizeof(*p));
     p->kind = A_gotoExp;
     p->pos = pos ;
-    p->u.gotoo.label = label;
+    p->u.gotoo.name = name;
     return p;
 }
 
@@ -209,61 +216,59 @@ A_expList   A_ExpList(A_pos pos, A_exp exp, A_expList list){
     return p;
 }
 
-A_var   A_Var(A_pos pos, char* name){
-    A_var p =lookupVar(varList, name);
-    if(p) {
+A_var   A_Var(A_pos pos, char* name, A_exp init){
+    A_var p = lookupVar(name);
+    if(p){
         error(ERROR_VAR_REDEFINE);
         exit(1);
     }
     A_var p = checked_malloc(sizeof(*p));
-    p->pos = pos;
-    // name = fieldId + name, require re-implement
     p->name = name;
-    // insertion
-    p->next = varList;
-    varList->next = p;
+    p->pos = pos;
+    p->init = init;
+    insertVar(varList, p); // p->next
     return p;
-}
-
-A_var   A_VarDec(A_pos pos, char* name){
-    A_var p = lookupVar(varList, name);
-    if(p) return p;
-    error(ERROR_VAR_NONDEFINE);
-    exit(1);
 }
 
 A_field A_Field(A_pos pos){
     A_field p = checked_malloc(sizeof(*p));
+    p->pos = pos;
     p->id = fieldNum;
     fieldNum++;
-    p->pos = pos;
-    insertField(fieldTree, p);
     return p;
 }
 
-A_func  A_FuncDec(A_pos pos, char* name, A_expList params){
-    A_func p = lookupFunc(funcList, name, params);
+A_func  A_FuncDec(A_pos pos, char* name, A_expList params, A_exp block){
+    A_func p = lookupFunc(name);
     if(p) {
         error(ERROR_FUNC_REDEFINE);// todo
         exit(1);
     }
-    p = newFunc(funcList, name, params);
+    A_func p = checked_malloc(sizeof(*p));
+    p->name = name;
+    p->params = params;
+    p->block = block;
+    p->pos = pos;
+    insertFunc(funcList, p); // p->next
     return p;
 }
 
-A_func  A_FuncCall(A_pos pos, char* name, A_expList params){
-    A_func p = lookupFunc(funcList, name, params);
-    if(p) return p;
-    error(ERROR_FUNC_NONDEFINE);
-    exit(1);
-}
-
 A_label A_Label(A_pos pos, char* name){
-    A_label p = lookupLabel(labelList, name);
+    A_label p = lookupLabel(name);
     if(p) {
         error(ERROR_LABEL_REDEFINE); // todo
         exit(1);
     }
-    p = newLabel(labelList, name);
+    A_label p = checked_malloc(sizeof(*p));
+    p->name = name;
+    p->pos = pos;
+    insertLabel(labelList, p); // p->next
     return p;
+}
+
+void init(){
+    varList = NULL;
+    labelList = NULL;
+    funcList = NULL;
+    fieldNum = 0;
 }
