@@ -66,7 +66,7 @@ pNode A_PostUnaryExp(Pos pos, Op op, pNode exp)
     return result;
 }
 
-pNode A_BinnaryExp(Pos pos, Op op, pNode exp1, pNode exp2)
+pNode A_BinaryExp(Pos pos, Op op, pNode exp1, pNode exp2)
 {
     pNode result = (pNode)malloc(sizeof(Node));
     result->kind = A_BINARY;
@@ -77,7 +77,7 @@ pNode A_BinnaryExp(Pos pos, Op op, pNode exp1, pNode exp2)
     return result;
 }
 
-pNode A_TrinaryExp(Pos pos, Op op, pNode exp1, pNode exp2, pNode exp3)
+pNode A_TrinaryExp(Pos pos, pNode exp1, pNode exp2, pNode exp3)
 {
     pNode result = (pNode)malloc(sizeof(Node));
     result->kind = A_TRINARY;
@@ -85,5 +85,24 @@ pNode A_TrinaryExp(Pos pos, Op op, pNode exp1, pNode exp2, pNode exp3)
     result->u.trinaryExp.test = exp1;
     result->u.trinaryExp.ift = exp2;
     result->u.trinaryExp.iff = exp3;
+    return result;
+}
+
+pNode A_AssignExp(Pos pos, pNode left, pNode right)
+{
+    pNode result = (pNode)malloc(sizeof(Node));
+    result->kind = A_ASSIGN;
+    result->pos = pos;
+    result->u.assignExp.left = left;
+    result->u.assignExp.right = right;
+    return result;
+}
+
+pNode A_IdExp(Pos pos, char* val)
+{
+    pNode result = (pNode)malloc(sizeof(Node));
+    result->kind = A_STRING;
+    result->pos = pos;
+    result->u.name = val; 
     return result;
 }

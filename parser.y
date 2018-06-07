@@ -23,10 +23,14 @@ static void yyerror(const char *msg)
     pNode       node;      
 }
 
-%type<stringVal> STR;
+%type<stringVal> STR ID;
 %type<intVal> INT;
 %type<floatVal> FLT;
-%type<node> factor;
+%type<node> unary_exp post_unary call;
+%type<node> factor mul_exp plus_exp shift_exp rel_exp eq_exp;
+%type<node> b_and_exp b_xor_exp b_or_exp and_exp simple_exp cond_exp;
+%type<node> exps assignment lval;
+
 
 %defines
 %locations
@@ -182,125 +186,121 @@ exps            : exp CMA exps              {}
                 ;
 
 exp             : assignment
-                | simple_exp
                 ;
  /* 16 */
-assignment      : lval ASN cond_exp                     {}
-                | lval arith_asn cond_exp %prec ASN     {}
-                | lval bitwise_asn cond_exp %prec ASN   {}
+assignment      : lval ASN cond_exp                         { $$ = A_AssignExp(yylineno, $1, $3); }
+                | lval ADD_ASN cond_exp %prec ASN           { $$ = A_AssignExp(yylineno, $1, A_BinaryExp(yylineno, ADD_OP, $1, $3)); }
+                | lval SUB_ASN cond_exp %prec ASN           { $$ = A_AssignExp(yylineno, $1, A_BinaryExp(yylineno, SUB_OP, $1, $3)); }
+                | lval MUL_ASN cond_exp %prec ASN           { $$ = A_AssignExp(yylineno, $1, A_BinaryExp(yylineno, MUL_OP, $1, $3)); }
+                | lval DIV_ASN cond_exp %prec ASN           { $$ = A_AssignExp(yylineno, $1, A_BinaryExp(yylineno, DIV_OP, $1, $3)); }
+                | lval MOD_ASN cond_exp %prec ASN           { $$ = A_AssignExp(yylineno, $1, A_BinaryExp(yylineno, MOD_OP, $1, $3)); }
+                | lval B_AND_ASN cond_exp %prec ASN         { $$ = A_AssignExp(yylineno, $1, A_BinaryExp(yylineno, B_AND_OP, $1, $3)); }
+                | lval B_XOR_ASN cond_exp %prec ASN         { $$ = A_AssignExp(yylineno, $1, A_BinaryExp(yylineno, B_XOR_OP, $1, $3)); }
+                | lval B_OR_ASN cond_exp %prec ASN          { $$ = A_AssignExp(yylineno, $1, A_BinaryExp(yylineno, B_OR_OP, $1, $3)); }
+                | lval B_R_ASN cond_exp %prec ASN           { $$ = A_AssignExp(yylineno, $1, A_BinaryExp(yylineno, B_R_OP, $1, $3)); }
+                | lval B_L_ASN cond_exp %prec ASN           { $$ = A_AssignExp(yylineno, $1, A_BinaryExp(yylineno, B_L_OP, $1, $3)); }
+                | cond_exp                                  { $$ = $1; }
                 ;
 
  /* Left-value */
 lval            : lval LBRACKET exp RBRACKET    {}
                 | lval DOT ID                   {}
-                | ID                            {}
-                ;
-
-arith_asn       : ADD_ASN                   {}
-                | SUB_ASN                   {}
-                | MUL_ASN                   {}
-                | DIV_ASN                   {}
-                | MOD_ASN                   {}
-                ;
-
-bitwise_asn     : B_AND_ASN                 {}
-                | B_XOR_ASN                 {}
-                | B_OR_ASN                  {}
-                | B_R_ASN                   {}
-                | B_L_ASN                   {}
+                | ID                            { $$ = A_IdExp(yylineno, $1); }
                 ;
 
  /* ? : */
-cond_exp        : exps QUE exps CLN exps    {}
+cond_exp        : simple_exp QUE exps CLN exps  { $$ = A_TrinaryExp(yylineno, $1, $3, $5); }
+                | simple_exp                    { $$ = $1; }
                 ;
 
  /* 15 */
-simple_exp      : simple_exp OR and_exp     {}
-                | and_exp                   {}
+simple_exp      : simple_exp OR and_exp     { $$ = A_BinaryExp(yylineno, OR_OP, $1, $3); }
+                | and_exp                   { $$ = $1; }
                 ;
 
  /* 14 */
-and_exp         : and_exp AND b_or_exp      {}
-                | b_or_exp                  {}
+and_exp         : and_exp AND b_or_exp      { $$ = A_BinaryExp(yylineno, AND_OP, $1, $3); }
+                | b_or_exp                  { $$ = $1; }
                 ;
 
  /* 13 */
-b_or_exp        : b_or_exp B_OR b_xor_exp   {}
-                | b_xor_exp                 {}
+b_or_exp        : b_or_exp B_OR b_xor_exp   { $$ = A_BinaryExp(yylineno, B_OR_OP, $1, $3); }
+                | b_xor_exp                 { $$ = $1; }
                 ;
 
  /* 12 */
-b_xor_exp       : b_xor_exp B_XOR b_and_exp {}
-                | b_and_exp                 {}
+b_xor_exp       : b_xor_exp B_XOR b_and_exp { $$ = A_BinaryExp(yylineno, B_XOR_OP, $1, $3); }
+                | b_and_exp                 { $$ = $1; }
                 ;
 
  /* 11 */
-b_and_exp       : b_and_exp B_AND eq_exp    {}
-                | eq_exp                    {}
+b_and_exp       : b_and_exp B_AND eq_exp    { $$ = A_BinaryExp(yylineno, B_AND_OP, $1, $3); }
+                | eq_exp                    { $$ = $1; }
                 ;
 
  /* 10 */
-eq_exp          : eq_exp EQ rel_exp                 {}
-                | eq_exp NEQ rel_exp %prec EQ       {}
-                | rel_exp                           {}
+eq_exp          : eq_exp EQ rel_exp                 { $$ = A_BinaryExp(yylineno, EQ_OP, $1, $3); }
+                | eq_exp NEQ rel_exp %prec EQ       { $$ = A_BinaryExp(yylineno, NEQ_OP, $1, $3); }
+                | rel_exp                           { $$ = $1; }
                 ;
 
  /* 9 */
-rel_exp         : rel_exp LEQ shift_exp             {}
-                | rel_exp GEQ shift_exp %prec LEQ   {}
-                | rel_exp LE shift_exp %prec LEQ    {}
-                | rel_exp GT shift_exp %prec LEQ    {}
-                | shift_exp                         {}
+rel_exp         : rel_exp LEQ shift_exp             { $$ = A_BinaryExp(yylineno, LEQ_OP, $1, $3); }
+                | rel_exp GEQ shift_exp %prec LEQ   { $$ = A_BinaryExp(yylineno, GEQ_OP, $1, $3); }
+                | rel_exp LE shift_exp %prec LEQ    { $$ = A_BinaryExp(yylineno, LE_OP, $1, $3); }
+                | rel_exp GT shift_exp %prec LEQ    { $$ = A_BinaryExp(yylineno, GT_OP, $1, $3); }
+                | shift_exp                         { $$ = $1; }
                 ;
 
  /* 7 << >> */
-shift_exp       : shift_exp B_L plus_exp            {}
-                | shift_exp B_R plus_exp %prec B_L  {}
-                | plus_exp                          {}
+shift_exp       : shift_exp B_L plus_exp            { $$ = A_BinaryExp(yylineno, B_L_OP, $1, $3); }
+                | shift_exp B_R plus_exp %prec B_L  { $$ = A_BinaryExp(yylineno, B_R_OP, $1, $3); }
+                | plus_exp                          { $$ = $1; }
                 ;
 
  /* 6 */
-plus_exp        : plus_exp ADD mul_exp              {}
-                | plus_exp SUB mul_exp %prec SUB    {}
-                | mul_exp                           {}
+plus_exp        : plus_exp ADD mul_exp              { $$ = A_BinaryExp(yylineno, ADD_OP, $1, $3); }
+                | plus_exp SUB mul_exp %prec SUB    { $$ = A_BinaryExp(yylineno, SUB_OP, $1, $3); }
+                | mul_exp                           { $$ = $1; }
                 ;
 
  /* 5 */
-mul_exp         : mul_exp MUL unary_exp             {}
-                | mul_exp DIV unary_exp %prec MUL   {}
-                | mul_exp MOD unary_exp %prec MUL   {}
-                | unary_exp                         {}
+mul_exp         : mul_exp MUL unary_exp             { $$ = A_BinaryExp(yylineno, MUL_OP, $1, $3); }
+                | mul_exp DIV unary_exp %prec MUL   { $$ = A_BinaryExp(yylineno, DIV_OP, $1, $3); }
+                | mul_exp MOD unary_exp %prec MUL   { $$ = A_BinaryExp(yylineno, MOD_OP, $1, $3); }
+                | unary_exp                         { $$ = $1; }
                 ;
 
  /* 3 */
-unary_exp       : ADD post_unary %prec UNARY    {}
-                | SUB post_unary %prec UNARY    {}
-                | INC post_unary %prec UNARY    {}
-                | DEC post_unary %prec UNARY    {}
-                | NOT post_unary %prec UNARY    {}
-                | B_NOT post_unary %prec UNARY  {}
-                | post_unary %prec UNARY        {}
+unary_exp       : ADD post_unary %prec UNARY    { $$ = A_PreUnaryExp(yylineno, ADD_OP, $2); }
+                | SUB post_unary %prec UNARY    { $$ = A_PreUnaryExp(yylineno, SUB_OP, $2); }
+                | INC post_unary %prec UNARY    { $$ = A_PreUnaryExp(yylineno, INC_OP, $2); }
+                | DEC post_unary %prec UNARY    { $$ = A_PreUnaryExp(yylineno, DEC_OP, $2); }
+                | NOT post_unary %prec UNARY    { $$ = A_PreUnaryExp(yylineno, NOT_OP, $2); }
+                | B_NOT post_unary %prec UNARY  { $$ = A_PreUnaryExp(yylineno, B_NOT_OP, $2); }
+                | post_unary %prec UNARY        { $$ = $1; }
                 ;
 
  /* 2 */
-post_unary      : factor INC                {}
-                | factor DEC %prec INC      {  }
-                | call                      {  }
-                | factor                    {  }
+post_unary      : factor INC                { $$ = A_PostUnaryExp(yylineno, INC_OP, $1); }
+                | factor DEC %prec INC      { $$ = A_PostUnaryExp(yylineno, DEC_OP, $1); }
+                | call                      { $$ = $1; }
+                | lval                      { $$ = $1; }
+                | factor                    { $$ = $1; }
                 ;
 
-call            : ID LPAREN args RPAREN     {}
+call            : ID LPAREN args RPAREN     {  }
                 ;
 
-args            : arg_list                  {}
-                | /* empty */               {}
+args            : arg_list                  {  }
+                | /* empty */               {  }
                 ;
 
-arg_list        : arg CMA arg_list          {}
-                | arg                       {}
+arg_list        : arg CMA arg_list          {  }
+                | arg                       {  }
                 ;
 
-arg             : exp                       { }
+arg             : exp                       {  }
                 ;
 
 factor          : INT                       { $$ = A_IntExp(yylineno, $1); }
