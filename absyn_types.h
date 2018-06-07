@@ -4,6 +4,12 @@
 // line position
 typedef int A_pos;
 typedef struct function_* A_func;
+typedef struct var_* A_var;
+typedef struct field_id_* A_field;
+typedef struct label_* A_label;
+typedef struct expList_* A_expList;
+typedef struct exp_* A_exp;
+
 struct function_ {
     char* name;
     A_pos pos;
@@ -13,7 +19,7 @@ struct function_ {
 };
 A_func funcList;
 
-typedef struct var_* A_var;
+
 struct var_ {
     char* name;
     A_pos pos;
@@ -22,20 +28,45 @@ struct var_ {
 };
 A_var varList;
 
-typedef struct field_id_* A_field;
+
 struct field_id_{
     int id;
     A_pos pos;
 };
 int fieldNum = 0;
 
-typedef struct label_* A_label;
+
 struct label_ {
     char* name;
     A_pos pos;
     A_label next;
 };
 A_label labelList;
+
+// expression list
+
+struct expList_{
+    A_exp exp;
+    A_expList next;
+};
+
+// operators
+// + - * / %
+// && || 
+// & | ^
+// = != > >= < <=
+// += -= *= /= %=
+// &= ^= |= << >>
+// ++ -- ! ~
+typedef enum {A_plusOp, A_minusOp, A_timesOp, A_divideOp, A_modOp, 
+        A_andOP, A_orOp, A_bAndOp, A_bOrOp, A_bXorOp, 
+        A_eqOp, A_neqOp, A_ltOp, A_leOp, A_gtOp, A_geOp,
+        A_addAsnOp, A_subAsnOp, A_mulAsnOp, A_divAsnOp, A_modAsnOp,
+        A_bAndAsnOp, A_bXorAsnOp, A_bOrAsnOp, A_bRshiftOp, A_bLshiftOp,
+        A_incOp, A_decOp, A_notOp, A_bNotOp } A_op;
+
+// const values
+typedef enum { A_int, A_float, A_string } A_value;
 
 // empty-expression
 // sequence-of-exps block-of-exps
@@ -47,7 +78,6 @@ A_label labelList;
 // binop assign
 // unaryOp(pre, post)
 // factor: int, float, string
-typedef struct exp_* A_exp;
 struct exp_{
     enum{ A_nullExp, A_seqExp, A_blockExp, A_varExp, A_varDecExp,
         A_funcDecExp, A_funcCallExp, A_returnExp, A_ifExp, 
@@ -82,30 +112,5 @@ struct exp_{
         struct { A_value value; } factor;
     } u;
 };
-
-// expression list
-typedef struct expList_* A_expList;
-struct expList_{
-    A_exp exp;
-    A_expList next;
-};
-
-// operators
-// + - * / %
-// && || 
-// & | ^
-// = != > >= < <=
-// += -= *= /= %=
-// &= ^= |= << >>
-// ++ -- ! ~
-typedef enum {A_plusOp, A_minusOp, A_timesOp, A_divideOp, A_modOp, 
-        A_andOP, A_orOp, A_bAndOp, A_bOrOp, A_bXorOp, 
-        A_eqOp, A_neqOp, A_ltOp, A_leOp, A_gtOp, A_geOp,
-        A_addAsnOp, A_subAsnOp, A_mulAsnOp, A_divAsnOp, A_modAsnOp,
-        A_bAndAsnOp, A_bXorAsnOp, A_bOrAsnOp, A_bRshiftOp, A_bLshiftOp,
-        A_incOp, A_decOp, A_notOp, A_bNotOp } A_op;
-
-// const values
-typedef enum { A_int, A_float, A_string } A_value;
 
 #endif

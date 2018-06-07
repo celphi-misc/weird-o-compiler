@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "absyn_types.h"
 
 void* checked_malloc(int size);

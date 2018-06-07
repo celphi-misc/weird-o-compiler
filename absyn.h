@@ -25,7 +25,7 @@ A_exp   A_SwitchExp(A_pos pos, A_exp switched, A_exp casee, A_exp defaultt);
 A_exp   A_CaseExp(A_pos pos, A_exp factor, A_exp block);
 A_exp   A_DefaultExp(A_pos pos, A_exp block);
 A_exp   A_OpExp(A_pos pos, A_op operatorr, A_exp left, A_exp right);
-A_exp   A_AssignExp(A_pos pos, A_op operatorr, A_var left, A_exp right);
+A_exp   A_AssignExp(A_pos pos, A_op operatorr, char* left, A_exp right);
 A_exp   A_PreUnaryExp(A_pos pos, A_op operatorr, A_exp right);
 A_exp   A_PostUnaryExp(A_pos pos, A_exp left, A_op operatorr);
 A_exp   A_FactorExp(A_pos pos, A_value value);

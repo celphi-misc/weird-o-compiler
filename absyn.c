@@ -1,5 +1,6 @@
 #include "absyn.h"
 #include "absyn_util.h"
+#include "absyn_types.h"
 
 A_exp   A_NullExp(A_pos pos){
     A_exp p = checked_malloc(sizeof(*p));
@@ -172,7 +173,7 @@ A_exp   A_OpExp(A_pos pos, A_op operatorr, A_exp left, A_exp right){
     return p;
 }
 
-A_exp   A_AssignExp(A_pos pos, A_op operatorr, A_var left, A_exp right){
+A_exp   A_AssignExp(A_pos pos, A_op operatorr, char* left, A_exp right){
     A_exp p = checked_malloc(sizeof(*p));
     p->kind = A_assignExp;
     p->pos = pos;
@@ -222,7 +223,7 @@ A_var   A_Var(A_pos pos, char* name, A_exp init){
         error(ERROR_VAR_REDEFINE);
         exit(1);
     }
-    A_var p = checked_malloc(sizeof(*p));
+    p = checked_malloc(sizeof(*p));
     p->name = name;
     p->pos = pos;
     p->init = init;
@@ -244,7 +245,7 @@ A_func  A_FuncDec(A_pos pos, char* name, A_expList params, A_exp block){
         error(ERROR_FUNC_REDEFINE);// todo
         exit(1);
     }
-    A_func p = checked_malloc(sizeof(*p));
+    p = checked_malloc(sizeof(*p));
     p->name = name;
     p->params = params;
     p->block = block;
@@ -259,7 +260,7 @@ A_label A_Label(A_pos pos, char* name){
         error(ERROR_LABEL_REDEFINE); // todo
         exit(1);
     }
-    A_label p = checked_malloc(sizeof(*p));
+    p = checked_malloc(sizeof(*p));
     p->name = name;
     p->pos = pos;
     insertLabel(labelList, p); // p->next
