@@ -108,8 +108,8 @@ stmts           : stmt SEM stmts            {}
 stmt            : declaration               {}
                 | if_stmt                   {}
                 | switch_stmt               {}
-                | CAS CLN stmt              {}
                 | DFT CLN stmt              {}
+                | CAS exp CLN stmt          {}
  /* label  */   | ID CLN stmt               {}
                 | for_stmt                  {}
                 | while_stmt                {}
@@ -120,6 +120,7 @@ stmt            : declaration               {}
                 | CTN                       {}
                 | GTO ID                    {}
                 | exps                      {}
+                | ID CLN                    {}
                 ;
 
 declaration     : var_dec
