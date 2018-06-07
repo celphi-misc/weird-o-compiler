@@ -84,7 +84,7 @@ struct exp_{
         A_forExp, A_whileExp, A_doExp, A_breakExp, A_continueExp, A_labelExp, A_gotoExp, 
         A_switchExp, A_caseExp, A_defaultExp,
         A_opExp, A_assignExp, A_preUnaryExp, A_postUnaryExp,
-        A_factorExp} kind;
+        A_factorExp, A_string, A_int, A_float, A_boolean} kind;
     A_pos pos;
     union {
         // null exp: no content
@@ -110,6 +110,10 @@ struct exp_{
         struct { A_op operatorr; A_exp right; } preUnaryExp;
         struct { A_exp left; A_op operatorr; } postUnaryExp;
         struct { A_value value; } factor;
+        int booleanVal;
+        long long intVal;
+        double floatVal;
+        char* stringVal;
     } u;
 };
 

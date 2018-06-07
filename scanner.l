@@ -1,6 +1,7 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
+#include "ast.h"
 #include "parser.h"
 
 // Curent column number
@@ -48,6 +49,7 @@ exp     [Ee][+-]?{digit}+
  /* Type key words */
 "var"                   { YY_UPDATE; return VAR; }
 "function"              { YY_UPDATE; return FUN; }
+"null"                  { YY_UPDATE; return NUL; }
 
  /* Return */
 "return"                { YY_UPDATE; return RTN; }
