@@ -12,6 +12,8 @@ SCANNER=scanner
 PARSER=parser
 OBJS=$(PARSER).o $(SCANNER).o
 
+OUTPUT=$(PARSER).output
+
 TARGET=woc
 
 all: $(TARGET)
@@ -30,4 +32,4 @@ $(PARSER).o: $(SCANNER.h)
 $(SCANNER).o: $(PARSER.h)
 
 clean:
-	rm -rf $(SCANNER).c $(PARSER).h $(PARSER).c $(OBJS) $(TARGET)
+	rm -rf $(SCANNER).c  $(SCANNER).h $(PARSER).h $(PARSER).c $(OBJS) $(TARGET) $(OUTPUT)

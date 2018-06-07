@@ -66,7 +66,7 @@ enum yytokentype {
     B_R_ASN   = 0x0178,
     B_L_ASN   = 0x0179,
 
-    // Comparason
+    // Comparison
     LEQ = 0x0080,
     GEQ = 0x0081,
     LE  = 0x0082,
