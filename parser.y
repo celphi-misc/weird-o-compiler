@@ -192,7 +192,7 @@ bitwise_asn     : B_AND_ASN                 {}
                 ;
 
  /* ? : */
-cond_exp        : exps QUE exps CLN exps    { $$ = !!!???XXX@@@ -_-|| }
+cond_exp        : exps QUE exps CLN exps    {}
                 ;
 
  /* 15 */
