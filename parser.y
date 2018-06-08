@@ -4,6 +4,7 @@
 #include "ast.h"
 #include "parser.h"
 #include "warn.h"
+#include "ast_print.h"
 
 extern int yylineno;
 extern FILE *yyin;
@@ -191,6 +192,7 @@ for_stmt        : FOR LPAREN for_cond SEM for_cond SEM for_cond RPAREN stmt
                 ;
 
 for_cond        : exps                      { $$ = $1; }
+                | VAR ID ASN exp            { $$ = A_VarInitExp(yylineno, A_IdExp(yylineno, $2), $4); }
                 | /* empty */               { $$ = A_VoidExp(yylineno); }
                 ;
 
@@ -351,5 +353,11 @@ int main(int argc, char **argv)
     else
         yyin = stdin;
     yyparse();
+    char *json;
+    if(ASTroot)
+    {
+        json = createAstJsonStr(ASTroot);
+        printf(json);
+    }
     return 0;
 }

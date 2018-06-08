@@ -1,0 +1,26 @@
+var global_c = 3;
+
+var global_v = global_c;
+
+function foo() {
+    var bar = global_v << 2;
+    global_c += global_v * bar;
+    return bar + global_c;
+}
+
+function main(argc, argv)
+{
+    var a = "hello world";
+    if(a == "hello") {
+        for(var i = 0; i < 10; i++)
+        {
+            print(a);
+        }
+    } else if(a[0] == 'h')
+    {
+        print(a);
+    } else {
+        print("foo");
+    }
+    return 0;
+}

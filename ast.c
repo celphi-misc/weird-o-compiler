@@ -101,7 +101,7 @@ pNode A_AssignExp(Pos pos, pNode left, pNode right)
 pNode A_IdExp(Pos pos, char* val)
 {
     pNode result = (pNode)malloc(sizeof(Node));
-    result->kind = A_STRING;
+    result->kind = A_ID;
     result->pos = pos;
     result->u.name = val; 
     return result;
