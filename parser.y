@@ -238,12 +238,8 @@ lval            : lval LBRACKET exp RBRACKET    { $$ = A_BinaryExp(yylineno, BRA
                 ;
 
  /* ? : */
-<<<<<<< HEAD
-cond_exp        : exps QUE exps CLN exps    {}
-=======
 cond_exp        : simple_exp QUE exps CLN exps  { $$ = A_TrinaryExp(yylineno, $1, $3, $5); }
                 | simple_exp                    { $$ = $1; }
->>>>>>> e7411b7134b74cb4c2729d35f48466d834a4485a
                 ;
 
  /* 15 */
