@@ -10,7 +10,10 @@ CCWARN=-Wall
 
 SCANNER=scanner
 PARSER=parser
-OBJS=$(PARSER).o $(SCANNER).o
+AST=ast
+OBJS=$(PARSER).o $(SCANNER).o $(AST).o
+
+OUTPUT=$(PARSER).output
 
 TARGET=woc
 
@@ -26,8 +29,8 @@ $(SCANNER).c: $(SCANNER).l
 	$(LEX) $(LEX_FLAGS) -o $(SCANNER).c $(SCANNER).l
 $(PARSER).h: $(PARSER).y
 $(SCANNER).h: $(SCANNER).l
-$(PARSER).o: $(SCANNER.h)
-$(SCANNER).o: $(PARSER.h)
+$(PARSER).o: $(SCANNER).h
+$(SCANNER).o: $(PARSER).h
 
 clean:
-	rm -rf $(SCANNER).c $(PARSER).h $(PARSER).c $(OBJS) $(TARGET)
+	rm -rf $(SCANNER).c  $(SCANNER).h $(PARSER).h $(PARSER).c $(OBJS) $(TARGET) $(OUTPUT)
