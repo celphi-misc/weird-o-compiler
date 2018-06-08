@@ -61,7 +61,7 @@ TreeNode IRFunction(pNode node){
     this->pos = node->pos;
     this->numOfChild = 2;
     this->childs = newNodeList(2);
-    (this->childs)[0] = IRLabel(node->u.functionExp.id);
+    (this->childs)[0] = IRName(node->u.functionExp.id);
 
     (this->childs)[1] = newTreeNode();
     (this->childs)[1]->name = TreeNodeName[SEQ];
@@ -73,6 +73,15 @@ TreeNode IRFunction(pNode node){
     ((this->childs)[1]->childs)[1] = IRBlock(node->u.functionExp.block);
 
     currentScope = currentScope->father;
+    return this;
+}
+
+TreeNode IRName(pNode node){
+    TreeNode this = newTreeNode();
+    this->name = TreeNodeName[NAME];
+    this->pos = node->pos;
+    this->childs = newNodeList(1);
+    (this->childs)[0] = IRLeafName(node->u.name);
     return this;
 }
 
@@ -89,32 +98,74 @@ TreeNode IRParams(pNode node){
     } else {
         // 1. register function's # of params,
         // 2. register vars in contemporary scope's varList
-        // 3. move params from temps
+        // 3. move params from memory <<<<< OR TEMP? How to Implement?
         int count = 1;
         if(node->kind == A_ID){
             currentFunction->numOfParams = count;
-            
-            return IRMove(node->u.name);
+            newVar(node->u.name);
+            char* tempName = registerName("s", count-1);
+            // MOVE: Para1 <- S1
+            return IRMoveT(node, tempName);
         }
         pNode p = node;
+        TreeNode this = newTreeNode();
+        TreeNode ptr = this;
         while(p->kind == A_EXPS){
-            TreeNode this = newTreeNode();
-            this->name = TreeNodeName[SEQ];
-            this->pos = p->pos;
-            this->numOfChild = 2;
-            this->childs = newNodeList(2);
-            (this->childs)[0] = IRMove(p->u.exps.left);
-            count ++;
+            ptr->name = TreeNodeName[SEQ];
+            ptr->pos = p->pos;
+            ptr->numOfChild = 2;
+            ptr->childs = newNodeList(2);
+            char* tempName = registerName("s", count-1);
+            (ptr->childs)[0] = IRMoveT(p->u.exps.left, tempName);
+
+            count++;
             p = p->u.exps.right;
+            // last node in para_list is A_ID in kind
+            if(p->kind == A_EXPS){
+                (ptr->childs)[1] = newTreeNode();
+                ptr = (ptr->childs)[1];
+            }
         }
         currentFunction->numOfParams = count;
-
+        char* tempName = registerName("s", count-1);
+        (ptr->childs)[1] = IRMoveT(p, tempName);        
+        return this;
     }
+}
 
+TreeNode IRMoveT(pNode node, char* tempName){
+    TreeNode this = newTreeNode();
+    this->name = TreeNodeName[MOVE];
+    this->pos = node->pos;
+    this->numOfChild = 2;
+    this->childs = newNodeList(2);
+    (this->childs)[0] = IRLeafName(node->u.name);
+    (this->childs)[1] = IRTemp(tempName);
+    return this;
+}
+
+TreeNode IRTemp(char* tempName){
+    TreeNode this = newTreeNode();
+    this->name = TreeNodeName[TEMP];
+    this->pos = -1;
+    this->numOfChild = 1;
+    this->childs = newNodeList(1);
+    (this->childs)[0] = IRLeafName(tempName);
+    return this;
 }
 
 TreeNode IRId(pNode node){
 
+}
+
+TreeNode IRLeafName(char* name){
+    TreeNode this = newTreeNode();
+    this->name = (char*)malloc(strlen(name)+1);
+    strcpy(this->name, name);
+    this->pos = -1;
+    this->numOfChild = 0;
+    this->childs = NULL;
+    return this;
 }
 
 TreeNode IRHerald(pNode node){
@@ -127,13 +178,21 @@ TreeNode IRHerald(pNode node){
             return IRVarDec(node);
         case A_FUNCTION:
             return IRFunction(node);
-        case A_ID:
-            return IRId(node);
+
     }
+}
+
+void newVar(char* name){
+    Var newV = (Var)malloc(sizeof(*newV));
+    newV->name = (char*)malloc(strlen(name)+1);
+    strcpy(newV->name, name);
+    newV->next = currentScope->varList;
+    currentScope->varList = newV;
 }
 
 void newFunction(pNode node){
     Function newF = (Function)malloc(sizeof(*newF));
+    newF->name = (char*)malloc(strlen(node->u.name)+1);
     strcpy(newF->name, node->u.name);
     newF->next = functionList;
     functionList = newF;
@@ -178,4 +237,34 @@ TreeNode newTreeNode(){
 // malloc space for a array of tree node pointers
 TreeNode* newNodeList(int num){
     return (TreeNode*)malloc(num*sizeof(TreeNode));
+}
+
+char* registerName(char* head, int num){
+    int digit = 0;
+    if(num == 0){
+        digit = 1;
+    }else{
+        int copy = num;
+        while(copy>0) {
+            digit++;
+            copy/=10;
+        }
+    }
+    char* itoa = (char*)malloc(digit+1);
+    int copy = num;
+    for(int i = digit -1; i >= 0; i--){
+        itoa[i] = copy %10;
+        copy /=10;
+    }
+    itoa[digit] = '\0';
+    int retLength = strlen(head) + digit;
+    char* ret = (char*)malloc(retLength + 1);
+    for(int i = 0; i<strlen(head); i++){
+        ret[i] = head[i];
+    }
+    for(int i = strlen(head); i<retLength; i++){
+        ret[i] = itoa[i - strlen(head)];
+    }
+    ret[retLength] = '\0';
+    return ret;
 }

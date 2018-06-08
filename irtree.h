@@ -23,7 +23,7 @@ struct var_t{
     char* name;
     // type?
     Var next;
-}
+};
 
 // represents the concept of code blocks
 // also used for variables' accessibility check
@@ -60,9 +60,31 @@ enum {
 
 // Entrance of IR tree generation module
 TreeNode IRTree(pNode root);
+// Redirection function
+TreeNode IRHerald(pNode node);
+
+TreeNode IRStmts(pNode node);
+TreeNode IRVarDec(pNode node);
+TreeNode IRFunction(pNode node);
+TreeNode IRName(pNode node);
+TreeNode IRParams(pNode node);
+TreeNode IRBlock(pNode node);
+TreeNode IRMoveT(pNode node, char* tempName);
+TreeNode IRLeafName(char* name);
+TreeNode IRTemp(char* name);
+TreeNode IRId(pNode node);
 
 
+// utilities
+void init();
 
+TreeNode newTreeNode();
+TreeNode* newNodeList(int size);
+void newVar(char* name);
+Scope newScope();
+void newFunction(pNode node);
+
+char* registerName(char* head, int num);
 
 #endif // !IR_TREE_H__
 
