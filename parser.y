@@ -82,8 +82,8 @@ program         : declarations
                 }
                 ;
 
-declarations    : var_dec SEM declarations  { $$ = $1; }
-                | fun_dec declarations      { $$ = $1; }
+declarations    : var_dec SEM declarations  { $$ = A_StmtsExp(yylineno, $1, $3); }
+                | fun_dec declarations      { $$ = A_StmtsExp(yylineno, $1, $2); }
                 | var_dec SEM               { $$ = $1; }
                 | fun_dec                   { $$ = $1; }
                 | error SEM                 {}
