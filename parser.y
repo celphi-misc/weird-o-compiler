@@ -78,8 +78,7 @@ pNode ASTroot;
 
 program         : declarations
                 {
-                    ASTroot = $1;
-                    $$ = $1;
+                    ASTroot = $$ = A_BlockExp(yylineno, $1);
                 }
                 ;
 
