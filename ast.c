@@ -106,3 +106,31 @@ pNode A_IdExp(Pos pos, char* val)
     result->u.name = val; 
     return result;
 }
+
+pNode A_CallExp(Pos pos, pNode head, pNode arg_list)
+{
+    pNode result = (pNode)malloc(sizeof(Node));
+    result->kind = A_CALL;
+    result->pos = pos;
+    result->u.callExp.head = head;
+    result->u.callExp.arg_list = arg_list;
+    return result;
+}
+
+pNode A_Exps(Pos pos, pNode left, pNode right)
+{
+    pNode result = (pNode)malloc(sizeof(Node));
+    result->kind = A_EXPS;
+    result->pos = pos;
+    result->u.Exps.left = left;
+    result->u.Exps.right = right;
+    return result;
+}
+
+pNode A_VoidExp(Pos pos)
+{
+    pNode result = (pNode)malloc(sizeof(Node));
+    result->kind = A_VOID;
+    result->pos = pos;
+    return result;
+}

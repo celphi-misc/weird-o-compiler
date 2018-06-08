@@ -29,7 +29,8 @@ static void yyerror(const char *msg)
 %type<node> unary_exp post_unary call;
 %type<node> factor mul_exp plus_exp shift_exp rel_exp eq_exp;
 %type<node> b_and_exp b_xor_exp b_or_exp and_exp simple_exp cond_exp;
-%type<node> exps assignment lval;
+%type<node> exps exp assignment lval;
+%type<node> args arg_list arg;
 
 
 %defines
@@ -170,22 +171,23 @@ for_stmt        : FOR LPAREN
                 ;
 
 while_stmt      : WHL LPAREN
-                  exps RPAREN               {}
+                  exps RPAREN               {  }
                   stmt
                 ;
 
-do_stmt         : DO stmt                   {}
-                  WHL LPAREN exps RPAREN    {}
+do_stmt         : DO stmt                   {  }
+                  WHL LPAREN exps RPAREN    {  }
                 ;
 
  /* ---- EXPRESSIONS ---- */
 
  /* 17 */
-exps            : exp CMA exps              {}
-                | exp %prec EXP {}
+exps            : exp CMA exps              { $$ = A_Exps(yylineno, $1, $3); }
+                | exp %prec EXP             { $$ = $1; }
                 ;
 
-exp             : assignment
+exp             : assignment                { $$ = $1; }
+                | cond_exp                  { $$ = $1; }
                 ;
  /* 16 */
 assignment      : lval ASN cond_exp                         { $$ = A_AssignExp(yylineno, $1, $3); }
@@ -199,12 +201,11 @@ assignment      : lval ASN cond_exp                         { $$ = A_AssignExp(y
                 | lval B_OR_ASN cond_exp %prec ASN          { $$ = A_AssignExp(yylineno, $1, A_BinaryExp(yylineno, B_OR_OP, $1, $3)); }
                 | lval B_R_ASN cond_exp %prec ASN           { $$ = A_AssignExp(yylineno, $1, A_BinaryExp(yylineno, B_R_OP, $1, $3)); }
                 | lval B_L_ASN cond_exp %prec ASN           { $$ = A_AssignExp(yylineno, $1, A_BinaryExp(yylineno, B_L_OP, $1, $3)); }
-                | cond_exp                                  { $$ = $1; }
                 ;
 
  /* Left-value */
-lval            : lval LBRACKET exp RBRACKET    {}
-                | lval DOT ID                   {}
+lval            : lval LBRACKET exp RBRACKET    { $$ = A_BinaryExp(yylineno, BRACKET_OP, $1, $3); }
+                | lval DOT ID                   { $$ = A_BinaryExp(yylineno, DOT_OP, $1, A_IdExp(yylineno, $3)); }
                 | ID                            { $$ = A_IdExp(yylineno, $1); }
                 ;
 
@@ -289,18 +290,18 @@ post_unary      : factor INC                { $$ = A_PostUnaryExp(yylineno, INC_
                 | factor                    { $$ = $1; }
                 ;
 
-call            : ID LPAREN args RPAREN     {  }
+call            : ID LPAREN args RPAREN     { $$ = A_CallExp(yylineno, A_IdExp(yylineno, $1), $3); }
                 ;
 
-args            : arg_list                  {  }
-                | /* empty */               {  }
+args            : arg_list                  { $$ = $1; }
+                | /* empty */               { $$ = A_VoidExp(yylineno); }
                 ;
 
-arg_list        : arg CMA arg_list          {  }
-                | arg                       {  }
+arg_list        : arg CMA arg_list          { $$ = A_Exps(yylineno, $1, $3); }
+                | arg                       { $$ = $1; }
                 ;
 
-arg             : exp                       {  }
+arg             : exp                       { $$ = $1; }
                 ;
 
 factor          : INT                       { $$ = A_IntExp(yylineno, $1); }

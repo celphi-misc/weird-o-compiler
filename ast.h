@@ -10,7 +10,7 @@ typedef enum {
     LEQ_OP, GEQ_OP, LE_OP, GT_OP, 
     EQ_OP, NEQ_OP,
     B_AND_OP, B_XOR_OP, B_OR_OP,
-    AND_OP, OR_OP
+    AND_OP, OR_OP, DOT_OP, BRACKET_OP,
 } Op;
 
 typedef struct Node_ {
@@ -18,7 +18,7 @@ typedef struct Node_ {
     {
         A_NUL, A_INT, A_FLOAT, A_BOOLEAN, A_STRING,
         A_PREUNARY, A_POSTUNARY, A_BINARY, A_TRINARY,
-        A_ASSIGN, A_ID,
+        A_ASSIGN, A_ID, A_CALL, A_EXPS, A_VOID,
     } kind;
     Pos pos;
     union {
@@ -27,12 +27,14 @@ typedef struct Node_ {
         double floatVal;
         char *stringVal;
         char *name;
-        struct { Op op; struct Node_* exp; } preUnaryExp;
+        struct { struct Node_* exp; Op op; } preUnaryExp;
         struct { struct Node_* exp; Op op; } postUnaryExp;
         struct { struct Node_* left; Op op; struct Node_* right; } binaryExp;
         struct { struct Node_* test; struct Node_* ift; struct Node_* iff; } trinaryExp;
         struct { struct Node_* left; struct Node_* right; } assignExp;
         struct { struct Node_* left; struct Node_* right; } dotExp;
+        struct { struct Node_* head; struct Node_* arg_list; } callExp;
+        struct { struct Node_* left; struct Node_* right; } Exps;
     } u;
 } Node;
 
@@ -49,5 +51,8 @@ pNode A_BinaryExp(Pos pos, Op op, pNode exp1, pNode exp2);
 pNode A_TrinaryExp(Pos pos, pNode exp1, pNode exp2, pNode exp3);
 pNode A_AssignExp(Pos pos, pNode left, pNode right);
 pNode A_IdExp(Pos pos, char* val);
+pNode A_CallExp(Pos pos, pNode head, pNode arg_list);
+pNode A_Exps(Pos pos, pNode left, pNode right);
+pNode A_VoidExp(Pos pos);
 
 #endif
