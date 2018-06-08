@@ -267,3 +267,42 @@ pNode A_GotoExp(Pos pos, pNode id)
     result->u.gotoExp.id = id;
     return result;
 }
+
+pNode A_BlockExp(Pos pos, pNode stmts)
+{
+    pNode result = (pNode)malloc(sizeof(Node));
+    result->kind = A_BLOCK;
+    result->pos = pos;
+    result->u.blockExp.stmts = stmts;
+    return result;
+}
+
+pNode A_FunctionExp(Pos pos, pNode id, pNode para_list, pNode block)
+{
+    pNode result = (pNode)malloc(sizeof(Node));
+    result->kind = A_FUNCTION;
+    result->pos = pos;
+    result->u.functionExp.id = id;
+    result->u.functionExp.para_list = para_list;
+    result->u.functionExp.block = block;
+    return result;
+}
+
+pNode A_VarInitExp(Pos pos, pNode id, pNode init)
+{
+    pNode result = (pNode)malloc(sizeof(Node));
+    result->kind = A_VAR_INIT;
+    result->pos = pos;
+    result->u.varInitExp.id = id;
+    result->u.varInitExp.init = init;
+    return result;
+}
+
+pNode A_VarDecExp(Pos pos, pNode id)
+{
+    pNode result = (pNode)malloc(sizeof(Node));
+    result->kind = A_VAR_DEC;
+    result->pos = pos;
+    result->u.varDecExp.id = id;
+    return result;
+}

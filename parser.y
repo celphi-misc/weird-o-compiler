@@ -14,6 +14,8 @@ static void yyerror(const char *msg)
 {
     fprintf(stderr, "%d: %s\n", yyget_lineno(), msg);
 }
+
+pNode ASTroot;
 %}
 
 %union
@@ -37,6 +39,8 @@ static void yyerror(const char *msg)
 %type<node> if_stmt else_clause;
 %type<node> switch_stmt case_stmts case_stmt;
 %type<node> declaration var_dec fun_dec;
+%type<node> vars var_init para_list paras para;
+%type<node> program declarations;
 
 %defines
 %locations
@@ -72,52 +76,56 @@ static void yyerror(const char *msg)
 
  /* ---- PROGRAM ---- */
 
-program         : declarations              {}
+program         : declarations
+                {
+                    ASTroot = $1;
+                    $$ = $1;
+                }
                 ;
 
-declarations    : var_dec SEM declarations  {}
-                | fun_dec declarations      {}
-                | var_dec SEM               {}
-                | fun_dec                   {}
+declarations    : var_dec SEM declarations  { $$ = $1; }
+                | fun_dec declarations      { $$ = $1; }
+                | var_dec SEM               { $$ = $1; }
+                | fun_dec                   { $$ = $1; }
                 | error SEM                 {}
                 | error RBRACE              {}
                 ;
 
  /* ---- VARIABLE DECLARATION ---- */
 
-var_dec         : VAR vars                  {}
+var_dec         : VAR vars                  { $$ = $2; }
+                | VAR error                 {}
                 ;
 
-vars            : var_init CMA vars         {}
-                | var_init                  {}
+vars            : var_init CMA vars         { $$ = A_StmtsExp(yylineno, $1, $3); }
+                | var_init                  { $$ = $1; }
                 ;
 
-var_init        : ID ASN exp                {}
-                | ID                        {}
+var_init        : ID ASN exp                { $$ = A_VarInitExp(yylineno, A_IdExp(yylineno, $1), $3); }
+                | ID                        { $$ = A_VarDecExp(yylineno, A_IdExp(yylineno, $1)); }
                 ;
 
  /* ---- FUNCTION DECLARATION ---- */
 
-fun_dec         : FUN ID                    {}
-                  LPAREN paras RPAREN       {}
-                  block                     {}
+fun_dec         : FUN ID LPAREN paras RPAREN block
+                {
+                    $$ = A_FunctionExp(yylineno, A_IdExp(yylineno, $2), $4, $6);
+                }
                 ;
 
-paras           : para_list                 {}
-                | /* empty */               {}
+paras           : para_list                 { $$ = $1; }
+                | /* empty */               { $$ = A_VoidExp(yylineno); }
                 ;
 
-para_list       : para CMA para_list        {}
-                | para                      {}
+para_list       : para CMA para_list        { $$ = A_Exps(yylineno, $1, $3); }
+                | para                      { $$ = $1; }
                 ;
 
-para            : ID                        {}
+para            : ID                        { $$ = A_IdExp(yylineno, $1); }
 
  /* ---- STATEMENTS ---- */
 
-block           : LBRACE
-                  stmts                     {}
-                  RBRACE                    {}
+block           : LBRACE stmts RBRACE       { $$ = A_BlockExp(yylineno, $2); }
                 ;
 
 stmts           : stmt stmts

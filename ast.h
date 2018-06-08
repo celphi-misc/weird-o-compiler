@@ -22,7 +22,8 @@ typedef struct Node_ {
         A_DO, A_WHILE, A_FOR,
         A_IF, A_STMTS, A_EMPTY_STMT,
         A_SWITCH, A_CASE, A_DEFAULT,
-        A_RETURN, A_BREAK, A_CONTINUE, A_GOTO, A_LABEL, 
+        A_RETURN, A_BREAK, A_CONTINUE, A_GOTO, A_LABEL,
+        A_BLOCK, A_FUNCTION, A_VAR_INIT, A_VAR_DEC,
     } kind;
     Pos pos;
     union {
@@ -50,6 +51,10 @@ typedef struct Node_ {
         struct { struct Node_* exp; } returnExp;
         struct { struct Node_* id; } gotoExp;
         struct { struct Node_* id; } labelExp;
+        struct { struct Node_* stmts; } blockExp;
+        struct { struct Node_* id; struct Node_* para_list; struct Node_* block; } functionExp;
+        struct { struct Node_* id; struct Node_* init; } varInitExp;
+        struct { struct Node_* id; } varDecExp;
     } u;
 } Node;
 
@@ -83,5 +88,9 @@ pNode A_BreakExp(Pos pos);
 pNode A_ContinueExp(Pos pos);
 pNode A_GotoExp(Pos pos, pNode id);
 pNode A_LabelExp(Pos pos, pNode id);
+pNode A_BlockExp(Pos pos, pNode stmts);
+pNode A_FunctionExp(Pos pos, pNode id, pNode para_list, pNode block);
+pNode A_VarInitExp(Pos pos, pNode id, pNode init);
+pNode A_VarDecExp(Pos pos, pNode id);
 
 #endif
