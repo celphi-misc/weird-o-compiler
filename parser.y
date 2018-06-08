@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include "ast.h"
 #include "parser.h"
+#include "warn.h"
 
 extern int yylineno;
 extern FILE *yyin;
@@ -31,7 +32,11 @@ static void yyerror(const char *msg)
 %type<node> b_and_exp b_xor_exp b_or_exp and_exp simple_exp cond_exp;
 %type<node> exps exp assignment lval;
 %type<node> args arg_list arg;
-
+%type<node> stmt stmts block;
+%type<node> for_stmt while_stmt do_stmt for_cond;
+%type<node> if_stmt else_clause;
+%type<node> switch_stmt case_stmts case_stmt;
+%type<node> declaration var_dec fun_dec;
 
 %defines
 %locations
@@ -70,25 +75,25 @@ static void yyerror(const char *msg)
 program         : declarations              {}
                 ;
 
-declarations    : var_dec SEM declarations
-                | fun_dec declarations
-                | var_dec SEM
-                | fun_dec
+declarations    : var_dec SEM declarations  {}
+                | fun_dec declarations      {}
+                | var_dec SEM               {}
+                | fun_dec                   {}
                 | error SEM                 {}
                 | error RBRACE              {}
                 ;
 
  /* ---- VARIABLE DECLARATION ---- */
 
-var_dec         : VAR vars
+var_dec         : VAR vars                  {}
                 ;
 
-vars            : var_init CMA vars
-                | var_init
+vars            : var_init CMA vars         {}
+                | var_init                  {}
                 ;
 
-var_init        : ID ASN exp
-                | ID
+var_init        : ID ASN exp                {}
+                | ID                        {}
                 ;
 
  /* ---- FUNCTION DECLARATION ---- */
@@ -115,68 +120,83 @@ block           : LBRACE
                   RBRACE                    {}
                 ;
 
-stmts           : stmt stmts                {}
-                | /* empty */
+stmts           : stmt stmts
+                {
+                    if($2->kind == A_EMPTY_STMT) $$ = $1;
+                    else $$ = A_StmtsExp(yylineno, $1, $2);
+                }
+                | stmt                      { $$ = $1; }
                 ;
 
-stmt            : declaration SEM           {}
-                | if_stmt                   {}
-                | switch_stmt               {}
-                | for_stmt                  {}
-                | while_stmt                {}
-                | do_stmt                   {}
-                | block                     {}
- /* label  */   | ID CLN stmt               {}
- /* return */   | RTN exp SEM               {}
-                | BRK SEM                   {}
-                | CTN SEM                   {}
-                | GTO ID SEM                {}
-                | exps SEM                  {}
-                | SEM
+stmt            : declaration SEM           { $$ = $1; }
+                | if_stmt                   { $$ = $1; }
+                | switch_stmt               { $$ = $1; }
+                | for_stmt                  { $$ = $1; }
+                | while_stmt                { $$ = $1; }
+                | do_stmt                   { $$ = $1; }
+                | block                     { $$ = $1; }
+ /* label  */   | ID CLN                    { $$ = A_LabelExp(yylineno, A_IdExp(yylineno, $1)); }
+ /* return */   | RTN exp SEM               { $$ = A_ReturnExp(yylineno, $2); }
+                | BRK SEM                   { $$ = A_BreakExp(yylineno); }
+                | CTN SEM                   { $$ = A_ContinueExp(yylineno); }
+                | GTO ID SEM                { $$ = A_GotoExp(yylineno, A_IdExp(yylineno, $2)); }
+                | exps SEM                  { $$ = $1; }
+                | SEM                       { $$ = A_EmptyStmtExp(yylineno); }
   /* error */   | error SEM                 {}
                 ;
 
-declaration     : var_dec
-                | fun_dec
+declaration     : var_dec                   { $$ = $1; }
+                | fun_dec                   { $$ = $1; }
                 ;
 
-if_stmt         : IF LPAREN exps RPAREN     {}
-                  stmt                      {}
-                  else_clause
+if_stmt         : IF LPAREN exps RPAREN stmt else_clause
+                {
+                    $$ = A_IfExp(yylineno, $3, $5, $6);
+                }
                 ;
 
-else_clause     : ELS stmt                  {}
-                | %prec EMPTY_ELS_CLAUSE
+else_clause     : ELS stmt                  { $$ = $2; }
+                | %prec EMPTY_ELS_CLAUSE    { $$ = A_EmptyStmtExp(yylineno); }
                 ;
 
-switch_stmt     : SWH LPAREN exps RPAREN    {}
-                  LBRACE
-                  case_stmts                {}
-                  RBRACE
+switch_stmt     : SWH LPAREN exps RPAREN LBRACE case_stmts RBRACE
+                {
+                    $$ = A_SwitchExp(yylineno, $3, $6);
+                }
                 ;
 
-case_stmts      : case_stmt case_stmts      {}
-                | /* empty */
+case_stmts      : case_stmt case_stmts
+                {
+                    if($2->kind == A_EMPTY_STMT) $$ = $1;
+                    else $$ = A_StmtsExp(yylineno, $1, $2);
+                }
+                | /* empty */               { $$ = A_EmptyStmtExp(yylineno); }
                 ;
 
-case_stmt       : CAS exp CLN stmts         {}
-                | DFT CLN stmts             {}
+case_stmt       : CAS exp CLN stmts         { $$ = A_CaseExp(yylineno, $2, $4); }
+                | DFT CLN stmts             { $$ = A_DefaultExp(yylineno, $3); }
                 ;
 
-for_stmt        : FOR LPAREN
-                  exps SEM                  {}
-                  exps SEM                  {}
-                  exps RPAREN               {}
-                  stmt                      {}
+for_stmt        : FOR LPAREN for_cond SEM for_cond SEM for_cond RPAREN stmt
+                {
+                    $$ = A_ForExp(yylineno, $3, $5, $7, $9);
+                }
                 ;
 
-while_stmt      : WHL LPAREN
-                  exps RPAREN               {  }
-                  stmt
+for_cond        : exps                      { $$ = $1; }
+                | /* empty */               { $$ = A_VoidExp(yylineno); }
                 ;
 
-do_stmt         : DO stmt                   {  }
-                  WHL LPAREN exps RPAREN    {  }
+while_stmt      : WHL LPAREN exps RPAREN stmt
+                {
+                    $$ = A_WhileExp(yylineno, $3, $5);
+                }
+                ;
+
+do_stmt         : DO stmt WHL LPAREN exps RPAREN
+                {
+                    $$ = A_DoExp(yylineno, $5, $2);
+                }
                 ;
 
  /* ---- EXPRESSIONS ---- */
@@ -186,7 +206,8 @@ exps            : exp CMA exps              { $$ = A_Exps(yylineno, $1, $3); }
                 | exp %prec EXP             { $$ = $1; }
                 ;
 
-exp             : assignment                { $$ = $1; }
+exp             : LPAREN exp RPAREN         { $$ = $2; }
+                | assignment                { $$ = $1; }
                 | cond_exp                  { $$ = $1; }
                 ;
  /* 16 */
@@ -275,16 +296,16 @@ mul_exp         : mul_exp MUL unary_exp             { $$ = A_BinaryExp(yylineno,
  /* 3 */
 unary_exp       : ADD post_unary %prec UNARY    { $$ = A_PreUnaryExp(yylineno, ADD_OP, $2); }
                 | SUB post_unary %prec UNARY    { $$ = A_PreUnaryExp(yylineno, SUB_OP, $2); }
-                | INC post_unary %prec UNARY    { $$ = A_PreUnaryExp(yylineno, INC_OP, $2); }
-                | DEC post_unary %prec UNARY    { $$ = A_PreUnaryExp(yylineno, DEC_OP, $2); }
+                | INC lval %prec UNARY          { $$ = A_PreUnaryExp(yylineno, INC_OP, $2); }
+                | DEC lval %prec UNARY          { $$ = A_PreUnaryExp(yylineno, DEC_OP, $2); }
                 | NOT post_unary %prec UNARY    { $$ = A_PreUnaryExp(yylineno, NOT_OP, $2); }
                 | B_NOT post_unary %prec UNARY  { $$ = A_PreUnaryExp(yylineno, B_NOT_OP, $2); }
                 | post_unary %prec UNARY        { $$ = $1; }
                 ;
 
  /* 2 */
-post_unary      : factor INC                { $$ = A_PostUnaryExp(yylineno, INC_OP, $1); }
-                | factor DEC %prec INC      { $$ = A_PostUnaryExp(yylineno, DEC_OP, $1); }
+post_unary      : lval INC                  { $$ = A_PostUnaryExp(yylineno, INC_OP, $1); }
+                | lval DEC %prec INC        { $$ = A_PostUnaryExp(yylineno, DEC_OP, $1); }
                 | call                      { $$ = $1; }
                 | lval                      { $$ = $1; }
                 | factor                    { $$ = $1; }

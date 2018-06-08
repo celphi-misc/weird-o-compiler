@@ -122,8 +122,8 @@ pNode A_Exps(Pos pos, pNode left, pNode right)
     pNode result = (pNode)malloc(sizeof(Node));
     result->kind = A_EXPS;
     result->pos = pos;
-    result->u.Exps.left = left;
-    result->u.Exps.right = right;
+    result->u.exps.left = left;
+    result->u.exps.right = right;
     return result;
 }
 
@@ -132,5 +132,138 @@ pNode A_VoidExp(Pos pos)
     pNode result = (pNode)malloc(sizeof(Node));
     result->kind = A_VOID;
     result->pos = pos;
+    return result;
+}
+
+pNode A_DoExp(Pos pos, pNode test, pNode body)
+{
+    pNode result = (pNode)malloc(sizeof(Node));
+    result->kind = A_DO;
+    result->pos = pos;
+    result->u.doExp.test = test;
+    result->u.doExp.body = body;
+    return result;
+}
+
+pNode A_WhileExp(Pos pos, pNode test, pNode body)
+{
+    pNode result = (pNode)malloc(sizeof(Node));
+    result->kind = A_WHILE;
+    result->pos = pos;
+    result->u.whileExp.test = test;
+    result->u.whileExp.body = body;
+    return result;
+}
+
+pNode A_ForExp(Pos pos, pNode start, pNode test, pNode incr, pNode body)
+{
+    pNode result = (pNode)malloc(sizeof(Node));
+    result->kind = A_FOR;
+    result->pos = pos;
+    result->u.forExp.start = start;
+    result->u.forExp.test = test;
+    result->u.forExp.incr = incr;
+    result->u.forExp.body = body;
+    return result;
+}
+
+pNode A_IfExp(Pos pos, pNode test, pNode if_clause, pNode else_clause)
+{
+    pNode result = (pNode)malloc(sizeof(Node));
+    result->kind = A_IF;
+    result->pos = pos;
+    result->u.ifExp.test = test;
+    result->u.ifExp.if_clause = if_clause;
+    result->u.ifExp.else_clause = else_clause;
+    return result;
+}
+
+pNode A_EmptyStmtExp(Pos pos)
+{
+    pNode result = (pNode)malloc(sizeof(Node));
+    result->kind = A_EMPTY_STMT;
+    result->pos = pos;
+    return result;
+}
+
+pNode A_StmtsExp(Pos pos, pNode left, pNode right)
+{
+    pNode result = (pNode)malloc(sizeof(Node));
+    result->kind = A_STMTS;
+    result->pos = pos;
+    result->u.stmtsExp.left = left;
+    result->u.stmtsExp.right = right;
+    return result;
+}
+
+pNode A_SwitchExp(Pos pos, pNode exp, pNode case_clause)
+{
+    pNode result = (pNode)malloc(sizeof(Node));
+    result->kind = A_SWITCH;
+    result->pos = pos;
+    result->u.switchExp.exp = exp;
+    result->u.switchExp.case_clause = case_clause;
+    return result;
+}
+
+pNode A_CaseExp(Pos pos, pNode exp, pNode stmts)
+{
+    pNode result = (pNode)malloc(sizeof(Node));
+    result->kind = A_CASE;
+    result->pos = pos;
+    result->u.caseExp.exp = exp;
+    result->u.caseExp.stmts = stmts;
+    return result;
+}
+
+pNode A_DefaultExp(Pos pos, pNode stmts)
+{
+    pNode result = (pNode)malloc(sizeof(Node));
+    result->kind = A_DEFAULT;
+    result->pos = pos;
+    result->u.defaultExp.stmts = stmts;
+    return result;
+}
+
+pNode A_ReturnExp(Pos pos, pNode exp)
+{
+    pNode result = (pNode)malloc(sizeof(Node));
+    result->kind = A_RETURN;
+    result->pos = pos;
+    result->u.returnExp.exp = exp;
+    return result;
+}
+
+pNode A_BreakExp(Pos pos)
+{
+    pNode result = (pNode)malloc(sizeof(Node));
+    result->kind = A_BREAK;
+    result->pos = pos;
+    return result;
+}
+
+pNode A_ContinueExp(Pos pos)
+{
+    pNode result = (pNode)malloc(sizeof(Node));
+    result->kind = A_CONTINUE;
+    result->pos = pos;
+    return result;
+}
+
+pNode A_LabelExp(Pos pos, pNode id)
+{
+    pNode result = (pNode)malloc(sizeof(Node));
+    result->kind = A_LABEL;
+    result->pos = pos;
+    result->u.labelExp.id = id;
+    return result;
+}
+
+pNode A_GotoExp(Pos pos, pNode id)
+{
+    pNode result = (pNode)malloc(sizeof(Node));
+    result->kind = A_GOTO;
+    result->pos = pos;
+    result->u.gotoExp.id = id;
     return result;
 }
