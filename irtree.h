@@ -7,6 +7,9 @@
 #include <string.h>
 
 typedef char* string;
+typedef int boolean;
+#define TRUE    1
+#define FALSE   0
 
 // IR tree node structure
 typedef struct ir_node_t* TreeNode;
@@ -70,6 +73,29 @@ enum {
     RET, NIL
 };
 
+string OpName[] = {
+    "PLUS", "MINUS", "INC", "DEC", "NOT", "BNOT",
+    "TIMES", "DIV", "MOD",
+    "BLEFT", "BRIGHT",
+    "LE", "GE", "LT", "GT",
+    "EQ", "NEQ",
+    "BAND", "BXOR", "BOR",
+    "AND", "OR", "DOT", "BRACKET"
+};
+
+typedef enum { INT, FLOAT, STRING, BOOLEAN } ConstType;
+
+typedef struct const_value_t* Const;
+struct const_value_t{
+    ConstType type;
+    union {
+        long long intV;
+        double floatV;
+        string stringV;
+        boolean booleanV;
+    } v;
+};
+
 // Entrance of IR tree generation module
 TreeNode IRTree(pNode root);
 // Redirection function
@@ -82,7 +108,7 @@ TreeNode IRVarInit(pNode node);
 TreeNode IRId(pNode node);
 TreeNode IRFunction(pNode node);
 TreeNode IRName(pNode node);
-TreeNode IRParams(pNode node);
+TreeNode IRLoadParams(pNode node);
 TreeNode IRNil();
 TreeNode IRMoveT(pNode node, char* tempName);
 TreeNode IRTemp(char* name);
@@ -97,10 +123,30 @@ TreeNode IRFor(pNode node);
 TreeNode IRWhile(pNode node);
 TreeNode IRDo(pNode node);
 TreeNode IRLabel(pNode node);
+TreeNode IRReturn(pNode node);
+TreeNode IRBreak(pNode node);
+TreeNode IRContinue(pNode node);
+TreeNode IRGoto(pNode node);
+TreeNode IREmptyStmt(pNode node);
+TreeNode IRExps(pNode node);
+TreeNode IRAssign(pNode node);
+TreeNode IRTrinary(pNode node);
+TreeNode IRBinary(pNode node);
+TreeNode IROp(Op operatorr);
+TreeNode IRPreUnary(pNode node);
+TreeNode IRConst(Const c);
+TreeNode IRPostUnary(pNode node);
+TreeNode IRCall(pNode node);
+TreeNode IRStoreParams(pNode node);
+TreeNode IRLoadT(pNode node, char* tempName);
+TreeNode IRFactor(pNode node);
+
 
 
 // utilities
 void init();
+
+Const newConst();
 
 void newLabel(char* name);
 void newAutoLabel(char* name);
@@ -115,6 +161,14 @@ TreeNode newTreeNode();
 TreeNode* newNodeList(int size);
 
 void appendName(char* head, int num);
+
+char* int2string(int num);
+char* float2string(double f);
+char* bool2string(boolean b);
+
+// not implemented
+void error();
+void errorCheck();
 
 #endif // !IR_TREE_H__
 

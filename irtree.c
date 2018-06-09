@@ -78,20 +78,37 @@ TreeNode IRFunction(pNode node){
     newFunction(node->u.functionExp.id);
 
     TreeNode this = newTreeNode();
-    this->name = TreeNodeName[SEQ];
+    this->name = TreeNodeName[ESEQ];
     this->pos = node->pos;
     this->numOfChild = 2;
     this->childs = newNodeList(2);
-    (this->childs)[0] = IRName(node->u.functionExp.id);
+// left child: (NAME, SEQ(PARAMS, BLOCK))
+    (this->childs)[0] = newTreeNode();
+    TreeNode left = (this->childs)[0];
+    left->name = TreeNodeName[SEQ];
+    left->pos = node->pos;
+    left->numOfChild = 2;
+    left->childs = newNodeList(2);
+    (left->childs)[0] = IRName(node->u.functionExp.id);
+    (left->childs)[1] = newTreeNode();
+    (left->childs)[1]->name = TreeNodeName[SEQ];
+    (left->childs)[1]->pos = node->pos;
+    (left->childs)[1]->numOfChild = 2;
+    (left->childs)[1]->childs = newNodeList(2);
+    ((left->childs)[1]->childs)[0] = IRLoadParams(node->u.functionExp.para_list);
+    ((left->childs)[1]->childs)[1] = IRBlock(node->u.functionExp.block);
+// right child: (LABEL(ret), TEMP(ret));
+    char* nameRet = "ret";
+    TreeNode labelRet = IRAutoLabel(nameRet);
 
     (this->childs)[1] = newTreeNode();
-    (this->childs)[1]->name = TreeNodeName[SEQ];
-    (this->childs)[1]->pos = node->pos;
-    (this->childs)[1]->numOfChild = 2;
-    (this->childs)[1]->childs = newNodeList(2);
-
-    ((this->childs)[1]->childs)[0] = IRParams(node->u.functionExp.para_list);
-    ((this->childs)[1]->childs)[1] = IRBlock(node->u.functionExp.block);
+    TreeNode right = (this->childs)[1];
+    right->name = TreeNodeName[ESEQ];
+    right->pos = node->pos;
+    right->numOfChild = 2;
+    right->childs = newNodeList(2);
+    (right->childs)[0] = labelRet;
+    (right->childs)[1] = IRTemp("ret");
 
     currentScope = currentScope->father;
     return this;
@@ -106,7 +123,7 @@ TreeNode IRName(pNode node){
     return this;
 }
 
-TreeNode IRParams(pNode node){
+TreeNode IRLoadParams(pNode node){
 
     if(node->kind == A_VOID){
         currentFunction->numOfParams = 0;
@@ -355,7 +372,7 @@ TreeNode IRWhile(pNode node){
 }
 
 TreeNode IRDo(pNode node){
-        currentScope = newScope();
+    currentScope = newScope();
 
     char* nameTest = "test";
     char* nameCont = "cont";
@@ -399,13 +416,30 @@ TreeNode IRLabel(pNode node){
 
 TreeNode IRReturn(pNode node){
     TreeNode this = newTreeNode();
-    this->name = TreeNodeName[RET];
+    this->name = TreeNodeName[SEQ];
     this->pos = node->pos;
     this->numOfChild = 2;
     this->childs = newNodeList(2);
+// left child: MOVE(ret, EXP(e))
+    (this->childs)[0] = newTreeNode();
+    TreeNode left = (this->childs)[0];
+    left->name = TreeNodeName[MOVE];
+    left->pos = node->pos;
+    left->numOfChild = 2;
+    left->childs = newNodeList(2);
     char* tempName = "ret";
-    (this->childs)[0] = IRTemp(tempName);
-    (this->childs)[1] = IRHerald(node->u.returnExp.exp);
+    (left->childs)[0] = IRTemp(tempName);
+    (left->childs)[1] = IRHerald(node->u.returnExp.exp);
+// right child: JUMP(ret);
+    (this->childs)[1] = newTreeNode();
+    TreeNode right = (this->childs)[1];
+    right->name = TreeNodeName[JUMP];
+    right->pos = node->pos;
+    right->numOfChild = 1;
+    right->childs = newNodeList(1);
+    char* jumpName = "ret";
+    appendName(jumpName, currentScope->id);
+    (right->childs)[0] = IRLeafName(jumpName);
     return this;
 }
 
@@ -449,38 +483,230 @@ TreeNode IREmptyStmt(pNode node){
 }
 
 TreeNode IRExps(pNode node){
-
+    if(node->u.exps.right){
+        TreeNode this = newTreeNode();
+        this->name = TreeNodeName[ESEQ];
+        this->pos = node->pos;
+        this->numOfChild = 2;
+        this->childs = newNodeList(2);
+        (this->childs)[0] = IRHerald(node->u.exps.left);
+        (this->childs)[1] = IRHerald(node->u.exps.right);
+        return this;
+    } else {
+        return IRHerald(node->u.exps.left);
+    }
 }
 
 TreeNode IRAssign(pNode node){
-
+    TreeNode this = newTreeNode();
+    this->name = TreeNodeName[MOVE];
+    this->pos = node->pos;
+    this->numOfChild = 2;
+    this->childs = newNodeList(2);
+    (this->childs)[0] = IRHerald(node->u.assignExp.left);
+    (this->childs)[1] = IRHerald(node->u.assignExp.right);
+    return this;
 }
 
+// same to if-else
 TreeNode IRTrinary(pNode node){
+    currentScope = newScope();
+// generate three auto labels
+    char* nameT = "TRUE";
+    char* nameF = "FALSE";
+    char* nameD = "DONE";
+    TreeNode labelT = IRAutoLabel(nameT);
+    TreeNode labelF = IRAutoLabel(nameF);
+    TreeNode labelD = IRAutoLabel(nameD);
 
+    TreeNode this = newTreeNode();
+    this->name = TreeNodeName[ESEQ];
+    this->pos = node->pos;
+    this->numOfChild = 2;
+    this->childs = newNodeList(2);
+// CJUMP: if(exp==TRUE) then Tlabel else Flabel
+    (this->childs)[0] = IRCjump("EQ", node->u.trinaryExp.test, "TRUE", nameT, nameF);
+// SEQ Tree: first TRUE, then FALSE, then Done
+    (this->childs)[1] = IRSeq(
+        labelT,IRSeq(
+            IRHerald(node->u.trinaryExp.ift), IRSeq(
+                IRJump(nameD), IRSeq(
+                    labelF, IRSeq(
+                        IRHerald(node->u.trinaryExp.iff), labelD
+                    )
+                )
+            )
+        )
+    );
+    currentScope = currentScope->father;
+    return this;
 }
 
 TreeNode IRBinary(pNode node){
-
+    TreeNode this = newTreeNode();
+    this->name = TreeNodeName[BINOP];
+    this->pos = node->pos;
+    this->numOfChild = 3;
+    this->childs = newNodeList(3);
+    (this->childs)[0] = IROp(node->u.binaryExp.op);
+    (this->childs)[1] = IRHerald(node->u.binaryExp.left);
+    (this->childs)[2] = IRHerald(node->u.binaryExp.right);
+    return this;
 }
-TreeNode IRPreUnary(pNode node){
 
+TreeNode IROp(Op operatorr){
+    return IRLeafName(OpName[operatorr]);
+}
+
+TreeNode IRPreUnary(pNode node){
+// I just regard it as BINOP 
+    if(node->u.preUnaryExp.op){
+        TreeNode this = newTreeNode();
+        this->name = TreeNodeName[BINOP];
+        this->pos = node->pos;
+        this->numOfChild = 3;
+        this->childs = newNodeList(3);
+        (this->childs)[0] = IROp(node->u.preUnaryExp.op);
+        (this->childs)[1] = IRHerald(node->u.preUnaryExp.exp);
+        Const c = newConst();
+        c->type = INT;
+        c->v.intV = 0;
+        (this->childs)[2] = IRConst(c);
+        return this;
+    } else {
+        return IRHerald(node->u.preUnaryExp.exp);
+    }
+}
+
+TreeNode IRConst(Const c){
+    TreeNode this = newTreeNode();
+    this->name = TreeNodeName[CONST];
+    this->pos = -1;
+    this->numOfChild = 1;
+    this->childs = newNodeList(1);
+    switch(c->type){
+        case INT:
+            (this->childs)[0] = IRLeafName(int2string((int)c->v.intV));
+            break;
+        case FLOAT:
+            (this->childs)[0] = IRLeafName(float2string(c->v.floatV));
+            break;
+        case STRING:
+            (this->childs)[0] = IRLeafName(c->v.stringV);
+            break;
+        case BOOLEAN:
+            (this->childs)[0] = IRLeafName(bool2string(c->v.booleanV));
+            break; 
+    }
+    return this;
 }
 
 TreeNode IRPostUnary(pNode node){
-
+    return IRPreUnary(node);
 }
 
 TreeNode IRCall(pNode node){
+    currentScope = newScope();
 
+    TreeNode this = newTreeNode();
+    this->name = TreeNodeName[ESEQ];
+    this->pos = node->pos;
+    this->numOfChild = 2;
+    this->childs = newNodeList(2);
+    (this->childs)[0] = IRStoreParams(node->u.callExp.arg_list);
+    (this->childs)[1] = newTreeNode();
+    TreeNode right = (this->childs)[1];
+    right->name = TreeNodeName[CALL];
+    right->pos = node->pos;
+    right->numOfChild = 1;
+    right->childs = newNodeList(1);
+    char* callName = node->u.callExp.head->u.name;
+    (right->childs)[0] = IRLeafName(callName);
+
+    currentScope = currentScope->father;
+    return this;
+}
+
+TreeNode IRStoreParams(pNode node){
+    if(node->kind == A_VOID){
+        return IRNil();
+    } else {
+        // move params to TEMP
+        int count = 1;
+        if(node->kind == A_ID){
+            char* tempName = "s";
+            appendName(tempName, count-1);
+            // MOVE: Para1 <- S1
+            return IRLoadT(node, tempName);
+        }
+        pNode p = node;
+        TreeNode this = newTreeNode();
+        TreeNode ptr = this;
+        while(p->kind == A_EXPS){
+            ptr->name = TreeNodeName[SEQ];
+            ptr->pos = p->pos;
+            ptr->numOfChild = 2;
+            ptr->childs = newNodeList(2);
+            char* tempName = "s";
+            appendName(tempName, count-1);
+            (ptr->childs)[0] = IRLoadT(p->u.exps.left, tempName);
+            count++;
+            p = p->u.exps.right;
+            // last node in para_list is A_ID in kind
+            if(p->kind == A_EXPS){
+                (ptr->childs)[1] = newTreeNode();
+                ptr = (ptr->childs)[1];
+            }
+        }
+        char* tempName = "s";
+        appendName(tempName, count-1);
+        (ptr->childs)[1] = IRLoadT(p, tempName);        
+        return this;
+    }
+}
+
+TreeNode IRLoadT(pNode node, char* tempName){
+    TreeNode this = newTreeNode();
+    this->name = TreeNodeName[MOVE];
+    this->pos = node->pos;
+    this->numOfChild = 2;
+    this->childs = newNodeList(2);
+    (this->childs)[0] = IRTemp(tempName);
+    (this->childs)[1] = IRLeafName(node->u.name);
+    return this;
 }
 
 TreeNode IRFactor(pNode node){
-
+    Const c = newConst();
+    switch(node->kind){
+        case A_INT:
+            c->type = INT;
+            c->v.intV = node->u.intVal;
+            break;
+        case A_FLOAT:
+            c->type = FLOAT;
+            c->v.floatV = node->u.floatVal;
+            break;
+        case A_STRING:
+            c->type = STRING;
+            c->v.stringV = node->u.stringVal;
+            break;
+        case A_BOOLEAN:
+            c->type = BOOLEAN;
+            c->v.booleanV = node->u.booleanVal;
+            break;
+        case A_NUL:
+            return IRNil();
+        default:
+            error();
+    }
+    return IRConst(c);
 }
 
 TreeNode IRHerald(pNode node){
     switch(node->kind){
+        case A_VOID:
+            return IRNil();
         case A_BLOCK:
             return IRBlock(node);
         case A_STMTS:
@@ -494,6 +720,8 @@ TreeNode IRHerald(pNode node){
         case A_IF:
             return IRIf(node);
         case A_SWITCH:
+        case A_CASE:
+        case A_DEFAULT:
             return IRSwitch(node);
         case A_FOR:
             return IRFor(node);
@@ -531,11 +759,19 @@ TreeNode IRHerald(pNode node){
         case A_FLOAT:
         case A_STRING:
         case A_BOOLEAN:
-        case A_NUL:
             return IRFactor(node);
+        case A_NUL:
+            return IRNil();
         case A_ID:
             return IRId(node);
+        default:
+            error();
     }
+    return IRNil();
+}
+
+Const newConst(){
+    return (Const)malloc(sizeof(struct const_value_t));
 }
 
 void newLabel(char* name){
@@ -620,26 +856,29 @@ TreeNode* newNodeList(int num){
 }
 
 void appendName(char* head, int num){
-    int digit = 0;
-    if(num == 0){
-        digit = 1;
-    }else{
-        int copy = num;
-        while(copy>0) {
-            digit++;
-            copy/=10;
-        }
-    }
-    char* itoa = (char*)malloc(digit+1);
-    int copy = num;
-    for(int i = digit -1; i >= 0; i--){
-        itoa[i] = copy %10;
-        copy /=10;
-    }
-    itoa[digit] = '\0';
-
+    char* itoa = int2string(num);
     int lengthDst = strlen(head);
     int lengthSrc = strlen(itoa);
     strcat(head, itoa);
     head[lengthDst + lengthSrc] = '\0';
+}
+
+char* int2string(int num){
+    char* ret = (char*)malloc(sizeof(char) * 256);
+    sprintf(ret, "%d", num);
+    return ret;
+}
+
+char* float2string(double f){
+    char* ret = (char*)malloc(sizeof(char) * 256);
+    sprintf(ret, "%lf", f);
+    return ret;
+}
+
+char* bool2string(boolean b){
+    if(b == TRUE){
+        return "TRUE";
+    } else {
+        return "FALSE";
+    }
 }
