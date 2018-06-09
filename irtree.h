@@ -57,14 +57,17 @@ string TreeNodeName[] = {
     "CONST", "NAME", "TEMP", "BINOP",
     "MEM", "CALL", "ESEQ", "MOVE", 
     "EXP", "JUMP", "CJUMP", "SEQ", "LABEL",
-    "NIL"
+    "RET", "NIL"
 };
 
+// RET and NIT are self-defined node types
+// RET: 2 children, move return value to TEMP(ret);
+// NIL: empty node
 enum { 
     CONST, NAME, TEMP, BINOP, 
     MEM, CALL, ESEQ, MOVE, 
     EXP, JUMP, CJUMP, SEQ, LABEL,
-    NIL
+    RET, NIL
 };
 
 // Entrance of IR tree generation module

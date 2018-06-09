@@ -285,7 +285,9 @@ TreeNode IRJump(char* name){
 }
 
 TreeNode IRSwitch(pNode node){
-
+// WO BU XIE LE!
+// ZHEN XIANG!
+    return IRNil();
 }
 
 TreeNode IRFor(pNode node){
@@ -383,6 +385,97 @@ TreeNode IRDo(pNode node){
 }
 
 TreeNode IRLabel(pNode node){
+    char* name = node->u.labelExp.id->u.name;
+    newLabel(name);
+
+    TreeNode this = newTreeNode();
+    this->name = TreeNodeName[LABEL];
+    this->pos = node->pos;
+    this->numOfChild = 1;
+    this->childs = newNodeList(1);
+    (this->childs)[0] = IRLeafName(name);
+    return this;
+}
+
+TreeNode IRReturn(pNode node){
+    TreeNode this = newTreeNode();
+    this->name = TreeNodeName[RET];
+    this->pos = node->pos;
+    this->numOfChild = 2;
+    this->childs = newNodeList(2);
+    char* tempName = "ret";
+    (this->childs)[0] = IRTemp(tempName);
+    (this->childs)[1] = IRHerald(node->u.returnExp.exp);
+    return this;
+}
+
+TreeNode IRBreak(pNode node){
+    TreeNode this = newTreeNode();
+    this->name = TreeNodeName[JUMP];
+    this->pos = node->pos;
+    this->numOfChild = 1;
+    this->childs = newNodeList(1);
+    char* name = "break";
+    appendName(name, currentScope->id);
+    (this->childs)[0] = IRLeafName(name);
+    return this;
+}
+
+TreeNode IRContinue(pNode node){
+    TreeNode this = newTreeNode();
+    this->name = TreeNodeName[JUMP];
+    this->pos = node->pos;
+    this->numOfChild = 1;
+    this->childs = newNodeList(1);
+    char* name = "cont";
+    appendName(name, currentScope->id);
+    (this->childs)[0] = IRLeafName(name);
+    return this;
+}
+
+TreeNode IRGoto(pNode node){
+    TreeNode this = newTreeNode();
+    this->name = TreeNodeName[JUMP];
+    this->pos = node->pos;
+    this->numOfChild = 1;
+    this->childs = newNodeList(1);
+    char* name = node->u.gotoExp.id->u.name;
+    (this->childs)[0] = IRLeafName(name);
+    return this;
+}
+
+TreeNode IREmptyStmt(pNode node){
+    return IRNil();
+}
+
+TreeNode IRExps(pNode node){
+
+}
+
+TreeNode IRAssign(pNode node){
+
+}
+
+TreeNode IRTrinary(pNode node){
+
+}
+
+TreeNode IRBinary(pNode node){
+
+}
+TreeNode IRPreUnary(pNode node){
+
+}
+
+TreeNode IRPostUnary(pNode node){
+
+}
+
+TreeNode IRCall(pNode node){
+
+}
+
+TreeNode IRFactor(pNode node){
 
 }
 
@@ -446,7 +539,12 @@ TreeNode IRHerald(pNode node){
 }
 
 void newLabel(char* name){
-
+    Label newL = (Label)malloc(sizeof(*newL));
+    newL->name = (char*)malloc(strlen(name)+1);
+    strcpy(newL->name, name);
+    newL->type = USER;
+    newL->next = globalLabelList;
+    globalLabelList = newL;
 }
 
 void newAutoLabel(char* name){
