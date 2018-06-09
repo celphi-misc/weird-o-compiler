@@ -5,6 +5,7 @@
 #include "parser.h"
 #include "warn.h"
 #include "ast_print.h"
+#include "irtree.h"
 
 extern int yylineno;
 extern FILE *yyin;
@@ -17,6 +18,7 @@ static void yyerror(const char *msg)
 }
 
 pNode ASTroot;
+TreeNode IRroot;
 %}
 
 %union
@@ -359,5 +361,6 @@ int main(int argc, char **argv)
         json = createAstJsonStr(ASTroot);
         printf(json);
     }
+    IRroot = IRTree(ASTroot);
     return 0;
 }
