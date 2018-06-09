@@ -569,7 +569,7 @@ TreeNode IRPreUnary(pNode node){
         (this->childs)[0] = IROp(node->u.preUnaryExp.op);
         (this->childs)[1] = IRHerald(node->u.preUnaryExp.exp);
         Const c = newConst();
-        c->type = INT;
+        c->type = C_INT;
         c->v.intV = 0;
         (this->childs)[2] = IRConst(c);
         return this;
@@ -585,16 +585,16 @@ TreeNode IRConst(Const c){
     this->numOfChild = 1;
     this->childs = newNodeList(1);
     switch(c->type){
-        case INT:
+        case C_INT:
             (this->childs)[0] = IRLeafName(int2string((int)c->v.intV));
             break;
-        case FLOAT:
+        case C_FLOAT:
             (this->childs)[0] = IRLeafName(float2string(c->v.floatV));
             break;
-        case STRING:
+        case C_STRING:
             (this->childs)[0] = IRLeafName(c->v.stringV);
             break;
-        case BOOLEAN:
+        case C_BOOLEAN:
             (this->childs)[0] = IRLeafName(bool2string(c->v.booleanV));
             break; 
     }
@@ -680,19 +680,19 @@ TreeNode IRFactor(pNode node){
     Const c = newConst();
     switch(node->kind){
         case A_INT:
-            c->type = INT;
+            c->type = C_INT;
             c->v.intV = node->u.intVal;
             break;
         case A_FLOAT:
-            c->type = FLOAT;
+            c->type = C_FLOAT;
             c->v.floatV = node->u.floatVal;
             break;
         case A_STRING:
-            c->type = STRING;
+            c->type = C_STRING;
             c->v.stringV = node->u.stringVal;
             break;
         case A_BOOLEAN:
-            c->type = BOOLEAN;
+            c->type = C_BOOLEAN;
             c->v.booleanV = node->u.booleanVal;
             break;
         case A_NUL:
@@ -881,4 +881,11 @@ char* bool2string(boolean b){
     } else {
         return "FALSE";
     }
+}
+
+void errorCheck(){
+
+}
+void error(){
+
 }

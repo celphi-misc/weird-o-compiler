@@ -56,11 +56,11 @@ struct function_t{
     Function next;
 };
 
-string TreeNodeName[] = {
+string TreeNodeName[14] = {
     "CONST", "NAME", "TEMP", "BINOP",
     "MEM", "CALL", "ESEQ", "MOVE", 
     "EXP", "JUMP", "CJUMP", "SEQ", "LABEL",
-    "RET", "NIL"
+    "NIL"
 };
 
 // RET and NIT are self-defined node types
@@ -69,11 +69,11 @@ string TreeNodeName[] = {
 enum { 
     CONST, NAME, TEMP, BINOP, 
     MEM, CALL, ESEQ, MOVE, 
-    EXP, JUMP, CJUMP, SEQ, LABEL,
-    RET, NIL
+    EXPR, JUMP, CJUMP, SEQ, LABEL,
+    NIL
 };
 
-string OpName[] = {
+string OpName[24] = {
     "PLUS", "MINUS", "INC", "DEC", "NOT", "BNOT",
     "TIMES", "DIV", "MOD",
     "BLEFT", "BRIGHT",
@@ -83,7 +83,7 @@ string OpName[] = {
     "AND", "OR", "DOT", "BRACKET"
 };
 
-typedef enum { INT, FLOAT, STRING, BOOLEAN } ConstType;
+typedef enum { C_INT, C_FLOAT, C_STRING, C_BOOLEAN } ConstType;
 
 typedef struct const_value_t* Const;
 struct const_value_t{
