@@ -5,6 +5,23 @@ TreeNode IRtree;
 // total number of scopes
 Label globalLabelList;
 
+string OpName[24] = {
+    "PLUS", "MINUS", "INC", "DEC", "NOT", "BNOT",
+    "TIMES", "DIV", "MOD",
+    "BLEFT", "BRIGHT",
+    "LE", "GE", "LT", "GT",
+    "EQ", "NEQ",
+    "BAND", "BXOR", "BOR",
+    "AND", "OR", "DOT", "BRACKET"
+};
+
+string TreeNodeName[14] = {
+    "CONST", "NAME", "TEMP", "BINOP",
+    "MEM", "CALL", "ESEQ", "MOVE", 
+    "EXP", "JUMP", "CJUMP", "SEQ", "LABEL",
+    "NIL"
+};
+
 int numOfScope;
 // using a skip list to maintain the scope hiarachy 
 Scope scopeTree;

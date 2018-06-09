@@ -56,12 +56,7 @@ struct function_t{
     Function next;
 };
 
-string TreeNodeName[14] = {
-    "CONST", "NAME", "TEMP", "BINOP",
-    "MEM", "CALL", "ESEQ", "MOVE", 
-    "EXP", "JUMP", "CJUMP", "SEQ", "LABEL",
-    "NIL"
-};
+string TreeNodeName[14];
 
 // RET and NIT are self-defined node types
 // RET: 2 children, move return value to TEMP(ret);
@@ -73,15 +68,7 @@ enum {
     NIL
 };
 
-string OpName[24] = {
-    "PLUS", "MINUS", "INC", "DEC", "NOT", "BNOT",
-    "TIMES", "DIV", "MOD",
-    "BLEFT", "BRIGHT",
-    "LE", "GE", "LT", "GT",
-    "EQ", "NEQ",
-    "BAND", "BXOR", "BOR",
-    "AND", "OR", "DOT", "BRACKET"
-};
+extern string OpName[24];
 
 typedef enum { C_INT, C_FLOAT, C_STRING, C_BOOLEAN } ConstType;
 

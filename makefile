@@ -11,8 +11,7 @@ CCWARN=-Wall
 SCANNER=scanner
 PARSER=parser
 AST=ast
-IRTREE=irtree
-OBJS=$(PARSER).o $(SCANNER).o $(AST).o $(IRTREE).o ast_print.o
+OBJS=$(PARSER).o $(SCANNER).o $(AST).o ast_print.o irtree.o
 
 OUTPUT=$(PARSER).output
 
