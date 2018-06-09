@@ -1,6 +1,8 @@
 #ifndef IR_TREE_H__
 #define IR_TREE_H__
 
+// #define _DEBUG
+
 #include "ast.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -101,7 +103,7 @@ TreeNode IRMoveT(pNode node, char* tempName);
 TreeNode IRTemp(char* name);
 TreeNode IRLeafName(char* name);
 TreeNode IRIf(pNode node);
-TreeNode IRAutoLabel(char* name);
+TreeNode IRAutoLabel(char* name, char** newName);
 TreeNode IRCjump(char* op, pNode expression, char* ToF, char* Tlabel, char* Flabel);
 TreeNode IRSeq(TreeNode left, TreeNode right);
 TreeNode IRJump(char* name);
@@ -136,7 +138,7 @@ void init();
 Const newConst();
 
 void newLabel(char* name);
-void newAutoLabel(char* name);
+char* newAutoLabel(char* name);
 
 void newVar(char* name);
 
@@ -147,7 +149,7 @@ Scope newScope();
 TreeNode newTreeNode();
 TreeNode* newNodeList(int size);
 
-void appendName(char* head, int num);
+char* appendName(char* head, int num);
 
 char* int2string(int num);
 char* float2string(double f);
