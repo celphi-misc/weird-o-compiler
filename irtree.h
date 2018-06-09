@@ -17,6 +17,14 @@ struct ir_node_t{
     TreeNode* childs;
 };
 
+// label list structure
+typedef struct label_t* Label;
+struct label_t{
+    enum { AUTO, USER } type;
+    char* name;
+    Label next;
+};
+
 // Var list structure, is member of Scope
 typedef struct var_t* Var;
 struct var_t{
@@ -31,6 +39,7 @@ typedef struct scope_t* Scope;
 struct scope_t{
     int id;
     Var varList;
+    Label autoLabelList;
     Scope father;
     Scope right;
     Scope child;
@@ -47,14 +56,14 @@ struct function_t{
 string TreeNodeName[] = {
     "CONST", "NAME", "TEMP", "BINOP",
     "MEM", "CALL", "ESEQ", "MOVE", 
-    "EXP", "JUMP", "SEQ", "LABEL",
+    "EXP", "JUMP", "CJUMP", "SEQ", "LABEL",
     "NIL"
 };
 
 enum { 
     CONST, NAME, TEMP, BINOP, 
     MEM, CALL, ESEQ, MOVE, 
-    EXP, JUMP, SEQ, LABEL,
+    EXP, JUMP, CJUMP, SEQ, LABEL,
     NIL
 };
 
@@ -63,28 +72,46 @@ TreeNode IRTree(pNode root);
 // Redirection function
 TreeNode IRHerald(pNode node);
 
+TreeNode IRBlock(pNode node);
 TreeNode IRStmts(pNode node);
 TreeNode IRVarDec(pNode node);
+TreeNode IRVarInit(pNode node);
+TreeNode IRId(pNode node);
 TreeNode IRFunction(pNode node);
 TreeNode IRName(pNode node);
 TreeNode IRParams(pNode node);
-TreeNode IRBlock(pNode node);
+TreeNode IRNil();
 TreeNode IRMoveT(pNode node, char* tempName);
-TreeNode IRLeafName(char* name);
 TreeNode IRTemp(char* name);
-TreeNode IRId(pNode node);
+TreeNode IRLeafName(char* name);
+TreeNode IRIf(pNode node);
+TreeNode IRAutoLabel(char* name);
+TreeNode IRCjump(char* op, pNode expression, char* ToF, char* Tlabel, char* Flabel);
+TreeNode IRSeq(TreeNode left, TreeNode right);
+TreeNode IRJump(char* name);
+TreeNode IRSwitch(pNode node);
+TreeNode IRFor(pNode node);
+TreeNode IRWhile(pNode node);
+TreeNode IRDo(pNode node);
+TreeNode IRLabel(pNode node);
 
 
 // utilities
 void init();
 
-TreeNode newTreeNode();
-TreeNode* newNodeList(int size);
+void newLabel(char* name);
+void newAutoLabel(char* name);
+
 void newVar(char* name);
-Scope newScope();
+
 void newFunction(pNode node);
 
-char* registerName(char* head, int num);
+Scope newScope();
+
+TreeNode newTreeNode();
+TreeNode* newNodeList(int size);
+
+void appendName(char* head, int num);
 
 #endif // !IR_TREE_H__
 
