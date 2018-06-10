@@ -351,6 +351,11 @@ int main(int argc, char **argv)
     if(argc > 1)
     {
         yyin = fopen(argv[1], "r");
+        if(!yyin)
+        {
+            fprintf(stderr, "Unable to open file %s.\nRun woc without arguments for help.\n", argv[1]);
+            return -1;
+        }
         if(argv[2]) {
             if(argv[2][1] == 'a')
             {
@@ -368,8 +373,9 @@ int main(int argc, char **argv)
     {
         fprintf(stderr, "woc [file] [options]\n");
         fprintf(stderr, "Options: \n");
-        fprintf(stderr, "\t-a\tGenerating AST JSON\n");
-        fprintf(stderr, "\t-i\tGenerating IR tree JSON\n");
+        fprintf(stderr, "\t-a\tGenerating AST in JSON\n");
+        fprintf(stderr, "\t-i\tGenerating IR tree in JSON\n");
+        fprintf(stderr, "\t-s\tGenerating symbol table for scopes in JSON\n");
         return -1;
     }
     yyparse();
@@ -390,9 +396,10 @@ int main(int argc, char **argv)
             TreeNode IRroot;
             IRroot = IRTree(ASTroot);
             json = createIRJsonStr(IRroot);
-        } else {
-            TreeNode IRroot;
-            IRroot = IRTree(ASTroot);
+        }
+        else
+        {
+            IRTree(ASTroot);
             json = printScopeAndVar();
         }
         for(i = 0; i < 1024; i++)
