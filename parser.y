@@ -89,7 +89,7 @@ declarations    : var_dec SEM declarations  { $$ = A_StmtsExp(yylineno, $1, $3);
                 | var_dec SEM               { $$ = $1; }
                 | fun_dec                   { $$ = $1; }
                 | error SEM                 { $$ = NULL; }
-                | error RBRACE              { $$ = NULL; }
+                | error                     { $$ = NULL; }
                 ;
 
  /* ---- VARIABLE DECLARATION ---- */
@@ -131,7 +131,7 @@ block           : LBRACE stmts RBRACE       { $$ = A_BlockExp(yylineno, $2); }
 
 stmts           : stmt stmts
                 {
-                    if($2->kind == A_EMPTY_STMT) $$ = $1;
+                    if($2 && $2->kind == A_EMPTY_STMT) $$ = $1;
                     else $$ = A_StmtsExp(yylineno, $1, $2);
                 }
                 | stmt                      { $$ = $1; }
@@ -173,7 +173,7 @@ switch_stmt     : SWH LPAREN exps RPAREN LBRACE case_stmts RBRACE
 
 case_stmts      : case_stmt case_stmts
                 {
-                    if($2->kind == A_EMPTY_STMT) $$ = $1;
+                    if($2 && $2->kind == A_EMPTY_STMT) $$ = $1;
                     else $$ = A_StmtsExp(yylineno, $1, $2);
                 }
                 | /* empty */               { $$ = A_EmptyStmtExp(yylineno); }
