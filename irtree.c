@@ -1,5 +1,6 @@
 #include "irtree.h"
 
+int error = 0;
 // IR tree structure
 TreeNode IRtree;
 // total number of scopes
@@ -64,7 +65,7 @@ TreeNode IRStmts(pNode node){
     this->childs = newNodeList(2);
     (this->childs)[0] = IRHerald(node->u.stmtsExp.left);
     (this->childs)[1] = IRHerald(node->u.stmtsExp.right);
-    return this;
+    if(!error) return this; else return NULL;
 }
 
 TreeNode IRVarDec(pNode node){
@@ -91,7 +92,7 @@ TreeNode IRVarInit(pNode node){
     newVar(varName);
     (this->childs)[0] = IRId(node->u.varInitExp.id);
     (this->childs)[1] = IRHerald(node->u.varInitExp.init);
-    return this;
+    if(!error) return this; else return NULL;
 }
 
 TreeNode IRId(pNode node){
@@ -104,7 +105,7 @@ TreeNode IRId(pNode node){
     this->numOfChild = 1;
     this->childs = newNodeList(1);
     (this->childs)[0] = IRLeafName(node->u.name);
-    return this;
+    if(!error) return this; else return NULL;
 }
 
 TreeNode IRFunction(pNode node){
@@ -151,7 +152,7 @@ TreeNode IRFunction(pNode node){
     (right->childs)[1] = IRTemp("ret");
 
     currentScope = currentScope->father;
-    return this;
+    if(!error) return this; else return NULL;
 }
 
 TreeNode IRName(pNode node){
@@ -163,7 +164,7 @@ TreeNode IRName(pNode node){
     this->pos = node->pos;
     this->childs = newNodeList(1);
     (this->childs)[0] = IRLeafName(node->u.name);
-    return this;
+    if(!error) return this; else return NULL;
 }
 
 TreeNode IRLoadParams(pNode node){
@@ -211,7 +212,7 @@ TreeNode IRLoadParams(pNode node){
         char* tempName = "s";
         tempName = appendName(tempName, count-1);
         (ptr->childs)[1] = IRMoveT(p, tempName);        
-        return this;
+        if(!error) return this; else return NULL;
     }
 }
 
@@ -224,7 +225,7 @@ TreeNode IRNil(){
     this->pos = -1;
     this->numOfChild = 0;
     this->childs = NULL;
-    return this;
+    if(!error) return this; else return NULL;
 }
 
 TreeNode IRMoveT(pNode node, char* tempName){
@@ -238,7 +239,7 @@ TreeNode IRMoveT(pNode node, char* tempName){
     this->childs = newNodeList(2);
     (this->childs)[0] = IRLeafName(node->u.name);
     (this->childs)[1] = IRTemp(tempName);
-    return this;
+    if(!error) return this; else return NULL;
 }
 
 TreeNode IRTemp(char* tempName){
@@ -251,7 +252,7 @@ TreeNode IRTemp(char* tempName){
     this->numOfChild = 1;
     this->childs = newNodeList(1);
     (this->childs)[0] = IRLeafName(tempName);
-    return this;
+    if(!error) return this; else return NULL;
 }
 
 TreeNode IRLeafName(char* name){
@@ -264,7 +265,7 @@ TreeNode IRLeafName(char* name){
     this->pos = -1;
     this->numOfChild = 0;
     this->childs = NULL;
-    return this;
+    if(!error) return this; else return NULL;
 }
 
 TreeNode IRIf(pNode node){
@@ -304,7 +305,7 @@ TreeNode IRIf(pNode node){
         )
     );
     currentScope = currentScope->father;
-    return this;
+    if(!error) return this; else return NULL;
 }
 
 TreeNode IRAutoLabel(char* name, char** newName){
@@ -320,7 +321,7 @@ TreeNode IRAutoLabel(char* name, char** newName){
     this->numOfChild = 1;
     this->childs = newNodeList(1);
     (this->childs)[0] = IRLeafName(*newName);
-    return this;
+    if(!error) return this; else return NULL;
 }
 
 TreeNode IRCjump(char* op, pNode expression, char* ToF, char* Tlabel, char* Flabel){
@@ -338,7 +339,7 @@ TreeNode IRCjump(char* op, pNode expression, char* ToF, char* Tlabel, char* Flab
     (this->childs)[2] = IRLeafName(ToF);
     (this->childs)[3] = IRLeafName(Tlabel);
     (this->childs)[4] = IRLeafName(Flabel);
-    return this;
+    if(!error) return this; else return NULL;
 }
 
 TreeNode IRSeq(TreeNode left, TreeNode right){
@@ -354,7 +355,7 @@ TreeNode IRSeq(TreeNode left, TreeNode right){
         this->childs = newNodeList(2);
         (this->childs)[0] = left;
         (this->childs)[1] = right;
-        return this;
+        if(!error) return this; else return NULL;
     } else if (left){
         return left;
     } else if (right){
@@ -374,7 +375,7 @@ TreeNode IRJump(char* name){
     this->numOfChild = 1;
     this->childs = newNodeList(1);
     (this->childs)[0] = IRLeafName(name);
-    return this;
+    if(!error) return this; else return NULL;
 }
 
 TreeNode IRSwitch(pNode node){
@@ -423,7 +424,7 @@ TreeNode IRFor(pNode node){
         );
     
     currentScope = currentScope->father;
-    return this;
+    if(!error) return this; else return NULL;
 }
 
 TreeNode IRWhile(pNode node){
@@ -459,7 +460,7 @@ TreeNode IRWhile(pNode node){
     );
 
     currentScope = currentScope->father;
-    return this;
+    if(!error) return this; else return NULL;
 }
 
 TreeNode IRDo(pNode node){
@@ -496,7 +497,7 @@ TreeNode IRDo(pNode node){
     );
 
     currentScope = currentScope->father;
-    return this;
+    if(!error) return this; else return NULL;
 }
 
 TreeNode IRLabel(pNode node){
@@ -512,7 +513,7 @@ TreeNode IRLabel(pNode node){
     this->numOfChild = 1;
     this->childs = newNodeList(1);
     (this->childs)[0] = IRLeafName(name);
-    return this;
+    if(!error) return this; else return NULL;
 }
 
 TreeNode IRReturn(pNode node){
@@ -547,7 +548,7 @@ TreeNode IRReturn(pNode node){
     fprintf(stdout, "here");
 #endif
     (right->childs)[0] = IRLeafName(jumpName);
-    return this;
+    if(!error) return this; else return NULL;
 }
 
 TreeNode IRBreak(pNode node){
@@ -562,7 +563,7 @@ TreeNode IRBreak(pNode node){
     char* name = "break";
     name = appendName(name, currentScope->id);
     (this->childs)[0] = IRLeafName(name);
-    return this;
+    if(!error) return this; else return NULL;
 }
 
 TreeNode IRContinue(pNode node){
@@ -577,7 +578,7 @@ TreeNode IRContinue(pNode node){
     char* name = "cont";
     name = appendName(name, currentScope->id);
     (this->childs)[0] = IRLeafName(name);
-    return this;
+    if(!error) return this; else return NULL;
 }
 
 TreeNode IRGoto(pNode node){
@@ -591,7 +592,7 @@ TreeNode IRGoto(pNode node){
     this->childs = newNodeList(1);
     char* name = node->u.gotoExp.id->u.name;
     (this->childs)[0] = IRLeafName(name);
-    return this;
+    if(!error) return this; else return NULL;
 }
 
 TreeNode IREmptyStmt(pNode node){
@@ -613,7 +614,7 @@ TreeNode IRExps(pNode node){
         this->childs = newNodeList(2);
         (this->childs)[0] = IRHerald(node->u.exps.left);
         (this->childs)[1] = IRHerald(node->u.exps.right);
-        return this;
+        if(!error) return this; else return NULL;
     } else {
         return IRHerald(node->u.exps.left);
     }
@@ -630,7 +631,7 @@ TreeNode IRAssign(pNode node){
     this->childs = newNodeList(2);
     (this->childs)[0] = IRHerald(node->u.assignExp.left);
     (this->childs)[1] = IRHerald(node->u.assignExp.right);
-    return this;
+    if(!error) return this; else return NULL;
 }
 
 // same to if-else
@@ -671,7 +672,7 @@ TreeNode IRTrinary(pNode node){
         )
     );
     currentScope = currentScope->father;
-    return this;
+    if(!error) return this; else return NULL;
 }
 
 TreeNode IRBinary(pNode node){
@@ -686,7 +687,7 @@ TreeNode IRBinary(pNode node){
     (this->childs)[0] = IROp(node->u.binaryExp.op);
     (this->childs)[1] = IRHerald(node->u.binaryExp.left);
     (this->childs)[2] = IRHerald(node->u.binaryExp.right);
-    return this;
+    if(!error) return this; else return NULL;
 }
 
 TreeNode IROp(Op operatorr){
@@ -713,7 +714,7 @@ TreeNode IRPreUnary(pNode node){
         c->type = C_INT;
         c->v.intV = 0;
         (this->childs)[2] = IRConst(c);
-        return this;
+        if(!error) return this; else return NULL;
     } else {
         return IRHerald(node->u.preUnaryExp.exp);
     }
@@ -742,7 +743,7 @@ TreeNode IRConst(Const c){
             (this->childs)[0] = IRLeafName(bool2string(c->v.booleanV));
             break; 
     }
-    return this;
+    if(!error) return this; else return NULL;
 }
 
 TreeNode IRPostUnary(pNode node){
@@ -773,7 +774,7 @@ TreeNode IRCall(pNode node){
     char* callName = node->u.callExp.head->u.name;
     (right->childs)[0] = IRLeafName(callName);
     currentScope = currentScope->father;
-    return this;
+    if(!error) return this; else return NULL;
 }
 
 TreeNode IRStoreParams(pNode node){
@@ -813,7 +814,7 @@ TreeNode IRStoreParams(pNode node){
         char* tempName = "s";
         tempName = appendName(tempName, count-1);
         (ptr->childs)[1] = IRLoadT(p, tempName); 
-        return this;
+        if(!error) return this; else return NULL;
     }
 }
 
@@ -828,7 +829,7 @@ TreeNode IRLoadT(pNode node, char* tempName){
     this->childs = newNodeList(2);
     (this->childs)[0] = IRTemp(tempName);
     (this->childs)[1] = IRHerald(node);
-    return this;
+    if(!error) return this; else return NULL;
 }
 
 TreeNode IRFactor(pNode node){
@@ -856,7 +857,7 @@ TreeNode IRFactor(pNode node){
         case A_NUL:
             return IRNil();
         default:
-            error();
+            printError();
     }
     return IRConst(c);
 }
@@ -926,7 +927,7 @@ TreeNode IRHerald(pNode node){
         case A_ID:
             return IRId(node);
         default:
-            error();
+            printError();
     }
     return IRNil();
 }
@@ -1115,21 +1116,50 @@ char* bool2string(boolean b){
 void errorCheck(){
 
 }
-void error(){
+void printError(){
 
 }
 
 #define BUF_SIZE 0xfff2
 char buffer[BUF_SIZE];
 
+int isString(char* name){
+    fprintf(stdout, "%s\n", name);
+    if(!strcmp(name, "TRUE")) return 0;
+    if(!strcmp(name, "FALSE")) return 0;
+    int flag = 0;
+    int dot = 0;
+    for(int i = 0; i<strlen(name); i++){
+        if(name[i] == '.') {
+            if(dot >=1) {
+                flag = 1;
+                break;
+            } else {
+                dot +=1;
+                continue;
+            }
+        }
+        if(name[i] >= '0' && name[i] <='9') continue;
+        else {
+            flag = 1; 
+            break;
+        }
+    }
+    return flag;
+}
+
 int printJson(TreeNode node, char* buf){
+    if(!node) return 0;
     char* oldBuf = buf;
     if(node->numOfChild == 0){
-        buf+=sprintf(buf, "{\"node\": \"%s\"", node->name);
+        if(isString(node->name))
+            buf+=sprintf(buf, "{\"node\": \"%s\"", node->name);
+        else 
+            buf+=sprintf(buf, "{\"node\": %s", node->name);
     } else if(node->numOfChild > 0){
         buf+=sprintf(buf, "{\"node\":\"%s\"", node->name);
         for(int i = 0; i< node->numOfChild; i++){
-            buf+= sprintf(buf, ",\"%d\":\n", i);
+            buf+= sprintf(buf, ",\"%d\":", i);
             buf += printJson((node->childs)[i], buf);
         }
     }
@@ -1144,5 +1174,51 @@ char* createIRJsonStr(TreeNode root){
     printJson(root, buffer);
     char* ret = (char*)malloc(strlen(buffer)+1);
     strcpy(ret, buffer);
+    return ret;
+}
+
+char bufferS[BUF_SIZE];
+
+int printScopeContent(Scope node, char* buf){
+    if(!node) return 0;
+    char* oldBuf = buf;
+    buf+=sprintf(buf, "{\"node\": \"scope\",");
+    buf+=sprintf(buf, "\"id\": %d", node->id);
+    if(node->varList){
+        buf+=sprintf(buf, ",\"vars\": {");
+        buf+=sprintf(buf, "\"node\": \"vars\"");
+        Var p = node->varList;
+        int i = 0;
+        while(p){
+            buf+=sprintf(buf, ",\"%d\": \"%s\"", i, p->name);
+            p = p->next;
+            i++;
+        }
+        buf+= sprintf(buf, "}");
+    }
+    if(node->child){
+        buf+=sprintf(buf, ",\"childScope\": {");
+        buf+= sprintf(buf, "\"node\": \"childScope\"");
+        Scope child = node->child;
+        int i = 0;
+        while (child){
+            buf+= sprintf(buf, ",\"%d\": ", i);
+            buf+= printScopeContent(child, buf);
+            child = child->right;
+            i++;
+        }
+        buf+=sprintf(buf, "}");
+    }
+    buf+= sprintf(buf, "}");
+    return buf - oldBuf;
+}
+
+char* printScopeAndVar(){
+    for(int i = 0; i< BUF_SIZE; i++){
+        bufferS[i] = 0;
+    }
+    printScopeContent(scopeTree, bufferS);
+    char* ret = (char*)malloc(strlen(bufferS)+1);
+    strcpy(ret, bufferS);
     return ret;
 }

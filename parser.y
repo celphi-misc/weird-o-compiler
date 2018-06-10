@@ -346,7 +346,7 @@ factor          : INT                       { $$ = A_IntExp(yylineno, $1); }
 
 int main(int argc, char **argv)
 {
-    typedef enum { AST, IR } TargetType;
+    typedef enum { AST, IR, IRSCOPE} TargetType;
     TargetType target_type = AST;
     if(argc > 1)
     {
@@ -356,9 +356,11 @@ int main(int argc, char **argv)
             {
                 target_type = AST;
             }
-            else
+            else if(argv[2][1] == 'i')
             {
                 target_type = IR;
+            }else{
+                target_type = IRSCOPE;
             }
         }
     }
@@ -383,11 +385,15 @@ int main(int argc, char **argv)
         {
             json = ast_str;
         }
-        else
+        else if(target_type == IR)
         {
             TreeNode IRroot;
             IRroot = IRTree(ASTroot);
             json = createIRJsonStr(IRroot);
+        } else {
+            TreeNode IRroot;
+            IRroot = IRTree(ASTroot);
+            json = printScopeAndVar();
         }
         for(i = 0; i < 1024; i++)
         {
@@ -398,7 +404,7 @@ int main(int argc, char **argv)
         }
         // Write file
         output_filename[i] = 0;
-        strcat(output_filename, target_type == AST ? ".ast.json" : ".ir.json");
+        strcat(output_filename, target_type == AST ? ".ast.json" : target_type == IR ? ".ir.json" : "irscope.json");
         output_file = fopen(output_filename, "w");
         if(output_file)
         {
