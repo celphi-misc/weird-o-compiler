@@ -1119,3 +1119,31 @@ void errorCheck(){
 void error(){
 
 }
+
+#define BUF_SIZE 0xfff2
+char buffer[BUF_SIZE];
+
+int printJson(TreeNode node, char* buf){
+    char* oldBuf = buf;
+    if(node->numOfChild == 0){
+        buf+=sprintf(buf, "\"name\": \"%s\"", node->name);
+    } else if(node->numOfChild > 0){
+        buf+=sprintf(buf, "\"node\":\"%s\"", node->name);
+        for(int i = 0; i< node->numOfChild; i++){
+            buf+= sprintf(buf, ",\"%d\": {", i);
+            buf += printJson((node->childs)[i], buf);
+        }
+    }
+    buf+=sprintf(buf, "}");
+    return buf - oldBuf;
+}
+
+char* createIRJsonStr(TreeNode root){
+    for(int i = 0; i< BUF_SIZE; i++){
+        buffer[i] = 0;
+    }
+    printJson(root, buffer);
+    char* ret = (char*)malloc(strlen(buffer)+1);
+    strcpy(ret, buffer);
+    return ret;
+}

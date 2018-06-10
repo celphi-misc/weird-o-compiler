@@ -362,5 +362,8 @@ int main(int argc, char **argv)
         printf(json);
     }
     IRroot = IRTree(ASTroot);
+    char* jsonIR;
+    jsonIR = createIRJsonStr(IRroot);
+    printf(jsonIR);
     return 0;
 }
