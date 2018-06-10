@@ -1124,7 +1124,6 @@ void printError(){
 char buffer[BUF_SIZE];
 
 int isString(char* name){
-    fprintf(stdout, "%s\n", name);
     if(!strcmp(name, "TRUE")) return 0;
     if(!strcmp(name, "FALSE")) return 0;
     int flag = 0;
@@ -1148,13 +1147,25 @@ int isString(char* name){
     return flag;
 }
 
+int isTrue(char* name){
+    return 1-strcmp(name, "TRUE");
+}
+
+int isFalse(char* name){
+    return 1-strcmp(name, "FALSE");
+}
+
 int printJson(TreeNode node, char* buf){
     if(!node) return 0;
     char* oldBuf = buf;
     if(node->numOfChild == 0){
         if(isString(node->name))
             buf+=sprintf(buf, "{\"node\": \"%s\"", node->name);
-        else 
+        else if(isTrue(node->name))
+            buf+=sprintf(buf, "{\"node\": true");
+        else if(isFalse(node->name))
+            buf+=sprintf(buf, "{\"node\": false");
+        else
             buf+=sprintf(buf, "{\"node\": %s", node->name);
     } else if(node->numOfChild > 0){
         buf+=sprintf(buf, "{\"node\":\"%s\"", node->name);

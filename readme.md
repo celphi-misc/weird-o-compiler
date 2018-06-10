@@ -2,6 +2,17 @@
 
 A simple C-like compiler that outputs the abstract syntax tree and intermediate representation in JSON.
 
+make : make project, generate executabel "woc"
+make clean: clean all generated files
+
+./woc test.woc [options]
+[options]:
+    -a: output "name.ast.json"
+    -r: output "name.ir.json"
+    -s: output "name.irscope.json"
+    default = -s
+    
+
 ## Ref
 * https://github.com/soshimozi/Compiler
 * [ANSI C grammar, Lex specification](http://www.lysator.liu.se/c/ANSI-C-grammar-l.html)

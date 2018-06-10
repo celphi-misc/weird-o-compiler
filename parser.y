@@ -401,10 +401,11 @@ int main(int argc, char **argv)
             {
                 output_filename[i] = argv[1][i];
             }
+            else break;
         }
         // Write file
         output_filename[i] = 0;
-        strcat(output_filename, target_type == AST ? ".ast.json" : target_type == IR ? ".ir.json" : "irscope.json");
+        strcat(output_filename, target_type == AST ? ".ast.json" : target_type == IR ? ".ir.json" : ".irscope.json");
         output_file = fopen(output_filename, "w");
         if(output_file)
         {
