@@ -402,15 +402,11 @@ int main(int argc, char **argv)
             IRTree(ASTroot);
             json = printScopeAndVar();
         }
-        for(i = 0; i < 1024; i++)
+        for(i = strlen(argv[1]); i >= 0; i--)
         {
-            if(argv[1][i] != '.')
-            {
-                output_filename[i] = argv[1][i];
-            }
-            else break;
+            if(argv[1][i] == '.') break;
         }
-        // Write file
+        strncpy(output_filename, argv[1], i);
         output_filename[i] = 0;
         strcat(output_filename, target_type == AST ? ".ast.json" : target_type == IR ? ".ir.json" : ".irscope.json");
         output_file = fopen(output_filename, "w");

@@ -2,24 +2,17 @@
 
 A simple C-like compiler that outputs the abstract syntax tree and intermediate representation in JSON.
 
-make : make project, generate executabel "woc"
+`make` : make project, generate executable "woc"
 
-make clean: clean all generated files
+`make clean`: clean all generated files
 
-
-./woc test.woc [options]
-
-[options]:
-
-    -a: output "name.ast.json"
-    
-    -r: output "name.ir.json"
-    
-    -s: output "name.irscope.json"
-    
-    default = -s 
-    
-
+```
+woc [file] [options]
+Options:
+        -a      Generating AST in JSON
+        -i      Generating IR tree in JSON
+        -s      Generating symbol table for scopes in JSON
+```
 
 ## Ref
 * https://github.com/soshimozi/Compiler
