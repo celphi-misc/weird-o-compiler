@@ -156,10 +156,10 @@ char* float2string(double f);
 char* bool2string(boolean b);
 
 // not implemented
-void error();
+void printError();
 void errorCheck();
 
 char* createIRJsonStr(TreeNode root);
-
+char* printScopeAndVar();
 #endif // !IR_TREE_H__
 
