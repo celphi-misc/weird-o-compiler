@@ -1,16 +1,18 @@
-var global_c = 3;
+var __var = 3;
 
-var global_v = global_c;
+var val = __var;
 
 function foo() {
-    var bar = global_v << 2;
-    global_c += global_v * bar;
-    return bar + global_c;
+    var bar = val << 2;
+    __var += val * bar > 0 ? __var : val >> __var;
+    switch (bar) { case 1: return foo(1); break; case 2: return foo(2); default: return ++bar; }
+    return bar + __var;
 }
 
 function main(argc, argv)
 {
     var a = "hello world";
+    function hello(para1, para2) { return null; }
     if(a == "hello") {
         for(var i = 0; i < 10; i++)
         {

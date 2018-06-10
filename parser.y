@@ -18,7 +18,6 @@ static void yyerror(const char *msg)
 }
 
 pNode ASTroot;
-TreeNode IRroot;
 %}
 
 %union
@@ -41,7 +40,7 @@ TreeNode IRroot;
 %type<node> for_stmt while_stmt do_stmt for_cond;
 %type<node> if_stmt else_clause;
 %type<node> switch_stmt case_stmts case_stmt;
-%type<node> declaration var_dec fun_dec;
+%type<node> var_dec fun_dec;
 %type<node> vars var_init para_list paras para;
 %type<node> program declarations;
 
@@ -89,14 +88,14 @@ declarations    : var_dec SEM declarations  { $$ = A_StmtsExp(yylineno, $1, $3);
                 | fun_dec declarations      { $$ = A_StmtsExp(yylineno, $1, $2); }
                 | var_dec SEM               { $$ = $1; }
                 | fun_dec                   { $$ = $1; }
-                | error SEM                 {}
-                | error RBRACE              {}
+                | error SEM                 { $$ = NULL; }
+                | error RBRACE              { $$ = NULL; }
                 ;
 
  /* ---- VARIABLE DECLARATION ---- */
 
 var_dec         : VAR vars                  { $$ = $2; }
-                | VAR error                 {}
+                | VAR error                 { $$ = NULL; }
                 ;
 
 vars            : var_init CMA vars         { $$ = A_StmtsExp(yylineno, $1, $3); }
@@ -138,7 +137,8 @@ stmts           : stmt stmts
                 | stmt                      { $$ = $1; }
                 ;
 
-stmt            : declaration SEM           { $$ = $1; }
+stmt            : var_dec SEM               { $$ = $1; }
+                | fun_dec                   { $$ = $1; }
                 | if_stmt                   { $$ = $1; }
                 | switch_stmt               { $$ = $1; }
                 | for_stmt                  { $$ = $1; }
@@ -152,11 +152,7 @@ stmt            : declaration SEM           { $$ = $1; }
                 | GTO ID SEM                { $$ = A_GotoExp(yylineno, A_IdExp(yylineno, $2)); }
                 | exps SEM                  { $$ = $1; }
                 | SEM                       { $$ = A_EmptyStmtExp(yylineno); }
-  /* error */   | error SEM                 {}
-                ;
-
-declaration     : var_dec                   { $$ = $1; }
-                | fun_dec                   { $$ = $1; }
+  /* error */   | error SEM                 { $$ = NULL; }
                 ;
 
 if_stmt         : IF LPAREN exps RPAREN stmt else_clause
@@ -350,20 +346,72 @@ factor          : INT                       { $$ = A_IntExp(yylineno, $1); }
 
 int main(int argc, char **argv)
 {
+    typedef enum { AST, IR } TargetType;
+    TargetType target_type = AST;
     if(argc > 1)
+    {
         yyin = fopen(argv[1], "r");
+        if(argv[2]) {
+            if(argv[2][1] == 'a')
+            {
+                target_type = AST;
+            }
+            else
+            {
+                target_type = IR;
+            }
+        }
+    }
     else
-        yyin = stdin;
+    {
+        fprintf(stderr, "woc [file] [options]\n");
+        fprintf(stderr, "Options: \n");
+        fprintf(stderr, "\t-a\tGenerating AST JSON\n");
+        fprintf(stderr, "\t-i\tGenerating IR tree JSON\n");
+        return -1;
+    }
     yyparse();
-    char *json;
-    // if(ASTroot)
-    // {
-    //     json = createAstJsonStr(ASTroot);
-    //     printf(json);
-    // }
-    IRroot = IRTree(ASTroot);
-    char* jsonIR;
-    jsonIR = createIRJsonStr(IRroot);
-    printf(jsonIR);
-    return 0;
+    if(ASTroot)
+    {
+        int i;
+        char *ast_str, *json;
+        char output_filename[4096];
+        FILE *output_file;
+        ast_str = createAstJsonStr(ASTroot);
+        if(!ast_str) goto else_stmt;
+        if(target_type == AST)
+        {
+            json = ast_str;
+        }
+        else
+        {
+            TreeNode IRroot;
+            IRroot = IRTree(ASTroot);
+            json = createIRJsonStr(IRroot);
+        }
+        for(i = 0; i < 1024; i++)
+        {
+            if(argv[1][i] != '.')
+            {
+                output_filename[i] = argv[1][i];
+            }
+        }
+        // Write file
+        output_filename[i] = 0;
+        strcat(output_filename, target_type == AST ? ".ast.json" : ".ir.json");
+        output_file = fopen(output_filename, "w");
+        if(output_file)
+        {
+            fprintf(output_file, json);
+        }
+        else
+        {
+            fprintf(stderr, "Unable to create file %s\n", output_filename);
+        }
+        return 0;
+    }
+    else else_stmt: {
+        fprintf(stderr, "Unable to generate AST for file %s\n", argv[1]);
+        return 1;
+    }
 }

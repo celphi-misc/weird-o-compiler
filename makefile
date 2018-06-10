@@ -19,10 +19,10 @@ TARGET=woc
 
 all: $(TARGET)
 $(TARGET): $(OBJS)
-	$(CC) $(OBJS) -o $(TARGET) $(CCLIBS)
+	$(CC) -g $(OBJS) -o $(TARGET) $(CCLIBS)
 
 %.o: %.c
-	$(CC) $(CCWARN) $*.c -c $(CCLIBS)
+	$(CC) -g $(CCWARN) $*.c -c $(CCLIBS)
 $(PARSER).c: $(PARSER).y
 	$(YACC) $(YACC_FLAGS) -o $(PARSER).c $(PARSER).y
 $(SCANNER).c: $(SCANNER).l

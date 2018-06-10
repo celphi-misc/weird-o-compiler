@@ -40,11 +40,12 @@ const char *getOpName(Op op)
 static int printBuffer(pNode node, char *buf)
 {
     char *old_buf = buf;
+    int ret;
     buf += sprintf(buf, "{");
     if(!node)
     {
-        fprintf(stderr, "Error met when printing AST tree\n");
-        goto end;
+        buf += sprintf(buf, "}");
+        return -1;
     }
     switch(node->kind)
     {
@@ -60,106 +61,170 @@ static int printBuffer(pNode node, char *buf)
             buf += sprintf(buf, "\"node\": \"string\",\"val\":\"%s\"", node->u.stringVal); break;
         case A_PREUNARY:
             buf += sprintf(buf, "\"node\":\"preunary\",\"op\":\"%s\",\"exp\":", getOpName(node->u.preUnaryExp.op));
-            buf += printBuffer(node->u.preUnaryExp.exp, buf);
+            ret = printBuffer(node->u.preUnaryExp.exp, buf);
+            if(ret == -1) return -1;
+            buf += ret;
             break;
         case A_POSTUNARY:
             buf += sprintf(buf, "\"node\":\"postunary\",\"exp\":");
-            buf += printBuffer(node->u.postUnaryExp.exp, buf);
+            ret = printBuffer(node->u.postUnaryExp.exp, buf);
+            if(ret == -1) return -1;
+            buf += ret;
             buf += sprintf(buf, ",\"op\":\"%s\"", getOpName(node->u.postUnaryExp.op));
             break;
         case A_BINARY:
             buf += sprintf(buf, "\"node\":\"binary\",\"left\":");
-            buf += printBuffer(node->u.binaryExp.left, buf);
+            ret = printBuffer(node->u.binaryExp.left, buf);
+            if(ret == -1) return -1;
+            buf += ret;
             buf += sprintf(buf, ",\"op\":\"%s\",\"right\":", getOpName(node->u.binaryExp.op));
-            buf += printBuffer(node->u.binaryExp.right, buf);
+            ret = printBuffer(node->u.binaryExp.right, buf);
+            if(ret == -1) return -1;
+            buf += ret;
             break;
         case A_TRINARY:
             buf += sprintf(buf, "\"node\":\"trinary\",\"test\":");
-            buf += printBuffer(node->u.trinaryExp.test, buf);
+            ret = printBuffer(node->u.trinaryExp.test, buf);
+            if(ret == -1) return -1;
+            buf += ret;
             buf += sprintf(buf, ",\"ift\":");
-            buf += printBuffer(node->u.trinaryExp.ift, buf);
+            ret = printBuffer(node->u.trinaryExp.ift, buf);
+            if(ret == -1) return -1;
+            buf += ret;
             buf += sprintf(buf, ",\"iff\":");
-            buf += printBuffer(node->u.trinaryExp.iff, buf);
+            ret = printBuffer(node->u.trinaryExp.iff, buf);
+            if(ret == -1) return -1;
+            buf += ret;
             break;
         case A_ASSIGN:
             buf += sprintf(buf, "\"node\":\"assign\",\"left\":");
-            buf += printBuffer(node->u.assignExp.left, buf);
+            ret = printBuffer(node->u.assignExp.left, buf);
+            if(ret == -1) return -1;
+            buf += ret;
             buf += sprintf(buf, ",\"right\":");
-            buf += printBuffer(node->u.assignExp.right, buf);
+            ret = printBuffer(node->u.assignExp.right, buf);
+            if(ret == -1) return -1;
+            buf += ret;
             break;
         case A_ID:
             buf += sprintf(buf, "\"node\":\"id\",\"name\":\"%s\"", node->u.name); break;
         case A_CALL:
             buf += sprintf(buf, "\"node\":\"call\",\"head\":");
-            buf += printBuffer(node->u.callExp.head, buf);
+            ret = printBuffer(node->u.callExp.head, buf);
+            if(ret == -1) return -1;
+            buf += ret;
             buf += sprintf(buf, ",\"arg_list\":");
-            buf += printBuffer(node->u.callExp.arg_list, buf);
+            ret = printBuffer(node->u.callExp.arg_list, buf);
+            if(ret == -1) return -1;
+            buf += ret;
             break;
         case A_EXPS:
             buf += sprintf(buf, "\"node\":\"exps\",\"left\":");
-            buf += printBuffer(node->u.exps.left, buf);
+            ret = printBuffer(node->u.exps.left, buf);
+            if(ret == -1) return -1;
+            buf += ret;
             buf += sprintf(buf, ",\"right\":");
-            buf += printBuffer(node->u.exps.right, buf);
+            ret = printBuffer(node->u.exps.right, buf);
+            if(ret == -1) return -1;
+            buf += ret;
             break;
         case A_VOID:
             buf += sprintf(buf, "\"node\":\"void\""); break;
         case A_DO:
             buf += sprintf(buf, "\"node\":\"do\",\"test\":");
-            buf += printBuffer(node->u.doExp.test, buf);
+            ret = printBuffer(node->u.doExp.test, buf);
+            if(ret == -1) return -1;
+            buf += ret;
             buf += sprintf(buf, ",\"body\":");
-            buf += printBuffer(node->u.doExp.body, buf);
+            ret = printBuffer(node->u.doExp.body, buf);
+            if(ret == -1) return -1;
+            buf += ret;
             break;
         case A_WHILE:
             buf += sprintf(buf, "\"node\":\"while\",\"test\":");
-            buf += printBuffer(node->u.whileExp.test, buf);
+            ret = printBuffer(node->u.whileExp.test, buf);
+            if(ret == -1) return -1;
+            buf += ret;
             buf += sprintf(buf, ",\"body\":");
-            buf += printBuffer(node->u.whileExp.body, buf);
+            ret = printBuffer(node->u.whileExp.body, buf);
+            if(ret == -1) return -1;
+            buf += ret;
             break;
         case A_FOR:
             buf += sprintf(buf, "\"node\":\"for\",\"start\":");
-            buf += printBuffer(node->u.forExp.start, buf);
+            ret = printBuffer(node->u.forExp.start, buf);
+            if(ret == -1) return -1;
+            buf += ret;
             buf += sprintf(buf, ",\"test\":");
-            buf += printBuffer(node->u.forExp.test, buf);
+            ret = printBuffer(node->u.forExp.test, buf);
+            if(ret == -1) return -1;
+            buf += ret;
             buf += sprintf(buf, ",\"incr\":");
-            buf += printBuffer(node->u.forExp.incr, buf);
+            ret = printBuffer(node->u.forExp.incr, buf);
+            if(ret == -1) return -1;
+            buf += ret;
             buf += sprintf(buf, ",\"body\":");
-            buf += printBuffer(node->u.forExp.body, buf);
+            ret = printBuffer(node->u.forExp.body, buf);
+            if(ret == -1) return -1;
+            buf += ret;
             break;
         case A_IF:
             buf += sprintf(buf, "\"node\":\"if\",\"test\":");
-            buf += printBuffer(node->u.ifExp.test, buf);
+            ret = printBuffer(node->u.ifExp.test, buf);
+            if(ret == -1) return -1;
+            buf += ret;
             buf += sprintf(buf, ",\"if_clause\":");
-            buf += printBuffer(node->u.ifExp.if_clause, buf);
+            ret = printBuffer(node->u.ifExp.if_clause, buf);
+            if(ret == -1) return -1;
+            buf += ret;
             buf += sprintf(buf, ",\"else_clase\":");
-            buf += printBuffer(node->u.ifExp.else_clause, buf);
+            ret = printBuffer(node->u.ifExp.else_clause, buf);
+            if(ret == -1) return -1;
+            buf += ret;
             break;
         case A_STMTS:
             buf += sprintf(buf, "\"node\":\"stmts\",\"left\":");
-            buf += printBuffer(node->u.stmtsExp.left, buf);
+            ret = printBuffer(node->u.stmtsExp.left, buf);
+            if(ret == -1) return -1;
+            buf += ret;
             buf += sprintf(buf, ",\"right\":");
-            buf += printBuffer(node->u.stmtsExp.right, buf);
+            ret = printBuffer(node->u.stmtsExp.right, buf);
+            if(ret == -1) return -1;
+            buf += ret;
             break;
         case A_EMPTY_STMT:
             buf += sprintf(buf, "\"node\":\"empty_stmt\""); break;
         case A_SWITCH:
             buf += sprintf(buf, "\"node\":\"switch\",\"exp\":");
-            buf += printBuffer(node->u.switchExp.exp, buf);
+            ret = printBuffer(node->u.switchExp.exp, buf);
+            if(ret == -1) return -1;
+            buf += ret;
             buf += sprintf(buf, ",\"case_clause\":");
-            buf += printBuffer(node->u.switchExp.case_clause, buf);
+            ret = printBuffer(node->u.switchExp.case_clause, buf);
+            if(ret == -1) return -1;
+            buf += ret;
             break;
         case A_CASE:
             buf += sprintf(buf, "\"node\":\"case\",\"exp\":");
-            buf += printBuffer(node->u.caseExp.exp, buf);
+            ret = printBuffer(node->u.caseExp.exp, buf);
+            if(ret == -1) return -1;
+            buf += ret;
             buf += sprintf(buf, ",\"stmts\":");
-            buf += printBuffer(node->u.caseExp.stmts, buf);
+            ret = printBuffer(node->u.caseExp.stmts, buf);
+            if(ret == -1) return -1;
+            buf += ret;
             break;
         case A_DEFAULT:
             buf += sprintf(buf, "\"node\":\"default\",\"stmts\":");
-            buf += printBuffer(node->u.defaultExp.stmts, buf);
+            ret = printBuffer(node->u.defaultExp.stmts, buf);
+            if(ret == -1) return -1;
+            buf += ret;
             break;
         case A_RETURN:
             buf += sprintf(buf, "\"node\":\"return\",\"exp\":");
-            buf += printBuffer(node->u.returnExp.exp, buf);
+            ret = printBuffer(node->u.returnExp.exp, buf);
+            if(ret == -1) return -1;
+            buf += ret;
             break;
         case A_BREAK:
             buf += sprintf(buf, "\"node\":\"break\""); break;
@@ -167,36 +232,53 @@ static int printBuffer(pNode node, char *buf)
             buf += sprintf(buf, "\"node\":\"continue\""); break;
         case A_GOTO:
             buf += sprintf(buf, "\"node\":\"goto\",\"id\":");
-            buf += printBuffer(node->u.gotoExp.id, buf);
+            ret = printBuffer(node->u.gotoExp.id, buf);
+            if(ret == -1) return -1;
+            buf += ret;
             break;
         case A_LABEL:
             buf += sprintf(buf, "\"node\":\"label\",\"id\":");
-            buf += printBuffer(node->u.labelExp.id, buf);
+            ret = printBuffer(node->u.labelExp.id, buf);
+            if(ret == -1) return -1;
+            buf += ret;
             break;
         case A_BLOCK:
             buf += sprintf(buf, "\"node\":\"block\",\"stmts\":");
-            buf += printBuffer(node->u.blockExp.stmts, buf);
+            ret = printBuffer(node->u.blockExp.stmts, buf);
+            if(ret == -1) return -1;
+            buf += ret;
             break;
         case A_FUNCTION:
             buf += sprintf(buf, "\"node\":\"function\",\"id\":");
-            buf += printBuffer(node->u.functionExp.id, buf);
+            ret = printBuffer(node->u.functionExp.id, buf);
+            if(ret == -1) return -1;
+            buf += ret;
             buf += sprintf(buf, ",\"para_list\":");
-            buf += printBuffer(node->u.functionExp.para_list, buf);
+            ret = printBuffer(node->u.functionExp.para_list, buf);
+            if(ret == -1) return -1;
+            buf += ret;
             buf += sprintf(buf, ",\"block\":");
-            buf += printBuffer(node->u.functionExp.block, buf);
+            ret = printBuffer(node->u.functionExp.block, buf);
+            if(ret == -1) return -1;
+            buf += ret;
             break;
         case A_VAR_INIT:
             buf += sprintf(buf, "\"node\":\"var_init\",\"id\":");
-            buf += printBuffer(node->u.varInitExp.id, buf);
+            ret = printBuffer(node->u.varInitExp.id, buf);
+            if(ret == -1) return -1;
+            buf += ret;
             buf += sprintf(buf, ",\"init\":");
-            buf += printBuffer(node->u.varInitExp.init, buf);
+            ret = printBuffer(node->u.varInitExp.init, buf);
+            if(ret == -1) return -1;
+            buf += ret;
             break;
         case A_VAR_DEC:
             buf += sprintf(buf, "\"node\":\"var_dec\",\"id\":");
-            buf += printBuffer(node->u.varDecExp.id, buf);
+            ret = printBuffer(node->u.varDecExp.id, buf);
+            if(ret == -1) return -1;
+            buf += ret;
             break;
     }
-    end:
     buf += sprintf(buf, "}");
     return buf - old_buf;
 }
@@ -204,7 +286,7 @@ static int printBuffer(pNode node, char *buf)
 char *createAstJsonStr(pNode astRoot)
 {
     buffer[0] = 0;
-    printBuffer(astRoot, buffer);
+    if(printBuffer(astRoot, buffer) == -1) return NULL;
     char *result = (char*)malloc(strlen(buffer) + 1);
     strcpy(result, buffer);
     return result;

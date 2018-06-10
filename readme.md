@@ -1,9 +1,6 @@
-## Test
+# Weird-o-compiler
 
-```
-$ make
-$ ./woc ./test.woc > test.json
-```
+A simple C-like compiler that outputs the abstract syntax tree and intermediate representation in JSON.
 
 ## Ref
 * https://github.com/soshimozi/Compiler
