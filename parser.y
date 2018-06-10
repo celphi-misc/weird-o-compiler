@@ -356,11 +356,14 @@ int main(int argc, char **argv)
         yyin = stdin;
     yyparse();
     char *json;
-    if(ASTroot)
-    {
-        json = createAstJsonStr(ASTroot);
-        printf(json);
-    }
+    // if(ASTroot)
+    // {
+    //     json = createAstJsonStr(ASTroot);
+    //     printf(json);
+    // }
     IRroot = IRTree(ASTroot);
+    char* jsonIR;
+    jsonIR = createIRJsonStr(IRroot);
+    printf(jsonIR);
     return 0;
 }

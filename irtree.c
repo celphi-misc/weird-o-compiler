@@ -319,7 +319,7 @@ TreeNode IRAutoLabel(char* name, char** newName){
     this->pos = -1;
     this->numOfChild = 1;
     this->childs = newNodeList(1);
-    (this->childs)[0] = IRLeafName(name);
+    (this->childs)[0] = IRLeafName(*newName);
     return this;
 }
 
@@ -954,15 +954,14 @@ char* newAutoLabel(char* name){
 #ifdef _DEBUG
     fprintf(stdout, "in newAutoLabel\n");
 #endif
-    name = appendName(name, currentScope->id);
-
+    char* ret = appendName(name, currentScope->id);
     Label newL = (Label)malloc(sizeof(*newL));
     newL->name = (char*)malloc(strlen(name)+1);
-    strcpy(newL->name, name);
+    strcpy(newL->name, ret);
     newL->type = AUTO;
     newL->next = currentScope->autoLabelList;
     currentScope->autoLabelList = newL;
-    return name;
+    return ret;
 }
 
 void newVar(char* name){
@@ -1118,4 +1117,32 @@ void errorCheck(){
 }
 void error(){
 
+}
+
+#define BUF_SIZE 0xfff2
+char buffer[BUF_SIZE];
+
+int printJson(TreeNode node, char* buf){
+    char* oldBuf = buf;
+    if(node->numOfChild == 0){
+        buf+=sprintf(buf, "{\"node\": \"%s\"", node->name);
+    } else if(node->numOfChild > 0){
+        buf+=sprintf(buf, "{\"node\":\"%s\"", node->name);
+        for(int i = 0; i< node->numOfChild; i++){
+            buf+= sprintf(buf, ",\"%d\":\n", i);
+            buf += printJson((node->childs)[i], buf);
+        }
+    }
+    buf+=sprintf(buf, "}");
+    return buf - oldBuf;
+}
+
+char* createIRJsonStr(TreeNode root){
+    for(int i = 0; i< BUF_SIZE; i++){
+        buffer[i] = 0;
+    }
+    printJson(root, buffer);
+    char* ret = (char*)malloc(strlen(buffer)+1);
+    strcpy(ret, buffer);
+    return ret;
 }

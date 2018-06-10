@@ -159,5 +159,7 @@ char* bool2string(boolean b);
 void error();
 void errorCheck();
 
+char* createIRJsonStr(TreeNode root);
+
 #endif // !IR_TREE_H__
 
