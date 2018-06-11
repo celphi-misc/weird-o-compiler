@@ -162,6 +162,7 @@ TreeNode IRName(pNode node){
     TreeNode this = newTreeNode();
     this->name = TreeNodeName[NAME];
     this->pos = node->pos;
+    this->numOfChild = 1;
     this->childs = newNodeList(1);
     (this->childs)[0] = IRLeafName(node->u.name);
     if(!error) return this; else return NULL;
@@ -291,7 +292,10 @@ TreeNode IRIf(pNode node){
     this->numOfChild = 2;
     this->childs = newNodeList(2);
 // CJUMP: if(exp==TRUE) then Tlabel else Flabel
-    (this->childs)[0] = IRCjump("EQ", node->u.ifExp.test, "TRUE", nameT, nameF);
+    Const c = newConst();
+    c->type = C_BOOLEAN;
+    c->v.booleanV = FALSE;
+    (this->childs)[0] = IRCjump("EQ", node->u.ifExp.test, IRConst(c), nameT, nameF);
 // SEQ Tree: first TRUE, then FALSE, then Done
     (this->childs)[1] = IRSeq(
         labelT,IRSeq(
@@ -324,7 +328,7 @@ TreeNode IRAutoLabel(char* name, char** newName){
     if(!error) return this; else return NULL;
 }
 
-TreeNode IRCjump(char* op, pNode expression, char* ToF, char* Tlabel, char* Flabel){
+TreeNode IRCjump(char* op, pNode expression, TreeNode cmp, char* Tlabel, char* Flabel){
 #ifdef _DEBUG
     fprintf(stdout, "in IRCjump\n");
 #endif
@@ -336,7 +340,7 @@ TreeNode IRCjump(char* op, pNode expression, char* ToF, char* Tlabel, char* Flab
     this->childs = newNodeList(5);
     (this->childs)[0] = IRLeafName(op);
     (this->childs)[1] = IRHerald(expression);
-    (this->childs)[2] = IRLeafName(ToF);
+    (this->childs)[2] = cmp;
     (this->childs)[3] = IRLeafName(Tlabel);
     (this->childs)[4] = IRLeafName(Flabel);
     if(!error) return this; else return NULL;
@@ -410,8 +414,11 @@ TreeNode IRFor(pNode node){
     this->numOfChild = 2;
     this->childs = newNodeList(2);
     (this->childs)[0] = IRHerald(node->u.forExp.start);
+    Const c= newConst();
+    c->type = C_BOOLEAN;
+    c->v.booleanV = TRUE;
     (this->childs)[1] = IRSeq(
-        IRSeq(labelTest, IRCjump("EQ", node->u.forExp.test, "TRUE", nameStart, nameBreak)), IRSeq(
+        IRSeq(labelTest, IRCjump("EQ", node->u.forExp.test, IRConst(c), nameStart, nameBreak)), IRSeq(
             labelStart, IRSeq(
                 IRHerald(node->u.forExp.body), IRSeq(
                     labelCont,IRSeq(
@@ -449,8 +456,11 @@ TreeNode IRWhile(pNode node){
     this->pos = node->pos;
     this->numOfChild = 2;
     this->childs = newNodeList(2);
+    Const c= newConst();
+    c->type = C_BOOLEAN;
+    c->v.booleanV = TRUE;
     (this->childs)[0] = IRSeq(
-        labelTest, IRCjump("EQ", node->u.whileExp.test, "TRUE", nameCont, nameBreak));
+        labelTest, IRCjump("EQ", node->u.whileExp.test, IRConst(c), nameCont, nameBreak));
     (this->childs)[1] = IRSeq(
         labelCont, IRSeq(
             IRHerald(node->u.whileExp.body), IRSeq(
@@ -492,8 +502,11 @@ TreeNode IRDo(pNode node){
             )
         )
     );
+    Const c= newConst();
+    c->type = C_BOOLEAN;
+    c->v.booleanV = TRUE;
     (this->childs)[1] = IRSeq(
-        labelTest, IRCjump("EQ", node->u.doExp.test, "TRUE", nameCont, nameBreak)
+        labelTest, IRCjump("EQ", node->u.doExp.test, IRConst(c), nameCont, nameBreak)
     );
 
     currentScope = currentScope->father;
@@ -657,8 +670,11 @@ TreeNode IRTrinary(pNode node){
     this->pos = node->pos;
     this->numOfChild = 2;
     this->childs = newNodeList(2);
-// CJUMP: if(exp==TRUE) then Tlabel else Flabel
-    (this->childs)[0] = IRCjump("EQ", node->u.trinaryExp.test, "TRUE", nameT, nameF);
+// CJUMP: if(exp==TRUE) then Tlabel else Flabel    
+    Const c= newConst();
+    c->type = C_BOOLEAN;
+    c->v.booleanV = TRUE;
+    (this->childs)[0] = IRCjump("EQ", node->u.trinaryExp.test, IRConst(c), nameT, nameF);
 // SEQ Tree: first TRUE, then FALSE, then Done
     (this->childs)[1] = IRSeq(
         labelT,IRSeq(
@@ -731,15 +747,18 @@ TreeNode IRConst(Const c){
     this->childs = newNodeList(1);
     switch(c->type){
         case C_INT:
+            this->isStr = 0;
             (this->childs)[0] = IRLeafName(int2string((int)c->v.intV));
             break;
         case C_FLOAT:
+            this->isStr = 0;
             (this->childs)[0] = IRLeafName(float2string(c->v.floatV));
             break;
         case C_STRING:
             (this->childs)[0] = IRLeafName(c->v.stringV);
             break;
         case C_BOOLEAN:
+            this->isStr = 0;
             (this->childs)[0] = IRLeafName(bool2string(c->v.booleanV));
             break; 
     }
@@ -1042,7 +1061,9 @@ TreeNode newTreeNode(){
 #ifdef _DEBUG
     fprintf(stdout, "in newTreeNode\n");
 #endif
-    return (TreeNode)malloc(sizeOfTreeNode);
+    TreeNode this = (TreeNode)malloc(sizeOfTreeNode);
+    this->isStr = 1;
+    return this;
 }
 // malloc space for a array of tree node pointers
 TreeNode* newNodeList(int num){
@@ -1098,6 +1119,9 @@ char* float2string(double f){
     fprintf(stdout, "in float2string\n");
 #endif
     char* ret = (char*)malloc(sizeof(char) * 256);
+    for(int i = 0; i<256; i++){
+        ret[i] = 0;
+    }
     sprintf(ret, "%lf", f);
     return ret;
 }
@@ -1107,9 +1131,9 @@ char* bool2string(boolean b){
     fprintf(stdout, "in bool2string\n");
 #endif
     if(b == TRUE){
-        return "TRUE";
+        return "true";
     } else {
-        return "FALSE";
+        return "false";
     }
 }
 
@@ -1123,48 +1147,12 @@ void printError(){
 #define BUF_SIZE 0xfff2
 char buffer[BUF_SIZE];
 
-int isString(char* name){
-    if(!strcmp(name, "TRUE")) return 0;
-    if(!strcmp(name, "FALSE")) return 0;
-    int flag = 0;
-    int dot = 0;
-    for(int i = 0; i<strlen(name); i++){
-        if(name[i] == '.') {
-            if(dot >=1) {
-                flag = 1;
-                break;
-            } else {
-                dot +=1;
-                continue;
-            }
-        }
-        if(name[i] >= '0' && name[i] <='9') continue;
-        else {
-            flag = 1; 
-            break;
-        }
-    }
-    return flag;
-}
-
-int isTrue(char* name){
-    return 1-strcmp(name, "TRUE");
-}
-
-int isFalse(char* name){
-    return 1-strcmp(name, "FALSE");
-}
-
 int printJson(TreeNode node, char* buf){
     if(!node) return 0;
     char* oldBuf = buf;
     if(node->numOfChild == 0){
-        if(isString(node->name))
+        if(node->isStr)
             buf+=sprintf(buf, "{\"node\": \"%s\"", node->name);
-        else if(isTrue(node->name))
-            buf+=sprintf(buf, "{\"node\": true");
-        else if(isFalse(node->name))
-            buf+=sprintf(buf, "{\"node\": false");
         else
             buf+=sprintf(buf, "{\"node\": %s", node->name);
     } else if(node->numOfChild > 0){

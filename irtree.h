@@ -17,6 +17,7 @@ typedef int boolean;
 typedef struct ir_node_t* TreeNode;
 struct ir_node_t{
     string name;
+    int isStr;
     int pos;
     int numOfChild;
     TreeNode* childs;
@@ -104,7 +105,7 @@ TreeNode IRTemp(char* name);
 TreeNode IRLeafName(char* name);
 TreeNode IRIf(pNode node);
 TreeNode IRAutoLabel(char* name, char** newName);
-TreeNode IRCjump(char* op, pNode expression, char* ToF, char* Tlabel, char* Flabel);
+TreeNode IRCjump(char* op, pNode expression, TreeNode cmp, char* Tlabel, char* Flabel);
 TreeNode IRSeq(TreeNode left, TreeNode right);
 TreeNode IRJump(char* name);
 TreeNode IRSwitch(pNode node);
