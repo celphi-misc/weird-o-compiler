@@ -346,7 +346,7 @@ factor          : INT                       { $$ = A_IntExp(yylineno, $1); }
 
 int main(int argc, char **argv)
 {
-    typedef enum { AST, IR, IRSCOPE} TargetType;
+    typedef enum { AST, IR, IRSCOPE, DEBUG } TargetType;
     TargetType target_type = AST;
     if(argc > 1)
     {
@@ -364,8 +364,10 @@ int main(int argc, char **argv)
             else if(argv[2][1] == 'i')
             {
                 target_type = IR;
-            }else{
+            }else if(argv[2][1] == 's') {
                 target_type = IRSCOPE;
+            } else {    
+                target_type = DEBUG;
             }
         }
     }
@@ -397,26 +399,35 @@ int main(int argc, char **argv)
             IRroot = IRTree(ASTroot);
             json = createIRJsonStr(IRroot);
         }
-        else
+        else if(target_type == IRSCOPE)
         {
             IRTree(ASTroot);
             json = printScopeAndVar();
         }
-        for(i = strlen(argv[1]); i >= 0; i--)
-        {
-            if(argv[1][i] == '.') break;
+        else {
+            // what you want to do in DEBUG mode
+            TreeNode IRroot = IRTree(ASTroot);
+            json = createIRJsonStr(IRroot);
         }
-        strncpy(output_filename, argv[1], i);
-        output_filename[i] = 0;
-        strcat(output_filename, target_type == AST ? ".ast.json" : target_type == IR ? ".ir.json" : ".irscope.json");
-        output_file = fopen(output_filename, "w");
-        if(output_file)
-        {
-            fprintf(output_file, json);
-        }
-        else
-        {
-            fprintf(stderr, "Unable to create file %s\n", output_filename);
+        if(target_type == DEBUG) {
+            fprintf(stdout, "%s", json);
+        } else {
+            for(i = strlen(argv[1]); i >= 0; i--)
+            {
+                if(argv[1][i] == '.') break;
+            }
+            strncpy(output_filename, argv[1], i);
+            output_filename[i] = 0;
+            strcat(output_filename, target_type == AST ? ".ast.json" : target_type == IR ? ".ir.json" : ".irscope.json");
+            output_file = fopen(output_filename, "w");
+            if(output_file)
+            {
+                fprintf(output_file, "%s", json);
+            }
+            else
+            {
+                fprintf(stderr, "Unable to create file %s\n", output_filename);
+            }
         }
         return 0;
     }

@@ -12,6 +12,7 @@ Options:
         -a      Generating AST in JSON
         -i      Generating IR tree in JSON
         -s      Generating symbol table for scopes in JSON
+        -d      Debug mode, programmer should define usage in parse.y
 ```
 
 ## Ref
