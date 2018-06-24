@@ -1,0 +1,5 @@
+function main(argc, argv) {
+    while(1) {
+        break;
+    }
+}

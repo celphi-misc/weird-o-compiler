@@ -1,0 +1,1 @@
+{"node":"block","stmts":{"node":"function","id":{"node":"id","name":"main"},"para_list":{"node":"exps","left":{"node":"id","name":"argc"},"right":{"node":"id","name":"argv"}},"block":{"node":"block","stmts":{"node":"while","test":{"node":"int","val":1},"body":{"node":"block","stmts":{"node":"break"}}}}}}

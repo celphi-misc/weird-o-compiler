@@ -1,0 +1,16 @@
+function main(argc, argv) {
+    var n = 10;
+    for(var i = 0; i < n; i++) {
+        start:
+        var j = 20;
+        while(j > 0) {
+            if(j <= i) break;
+            print(i); print(j);
+            j--;
+        }
+        if(j <= 5) goto start;
+        else if(j > 3) continue;
+        print("hello");
+    }
+    return 0;
+}
