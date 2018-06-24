@@ -3,24 +3,24 @@ var n = 10;
 function main(argc, argv) {
     for(var i = 0; i < n; i++) {
         print(i);
-    }
+    } // for loop
 
     var j = n - 1;
 
     while(j) {
         print(j);
         j--;
-    }
+    } // while loop
 
     do {
         print(j);
         j++;
-    } while(j < n);
+    } while(j < n); // do-while loop
 
     loop:
     print(j);
     j--;
-    if(j > 0) goto loop;
+    if(j > 0) goto loop; // goto & label
 
     return argv[argc - 1];
 }
