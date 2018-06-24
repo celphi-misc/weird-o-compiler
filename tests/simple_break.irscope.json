@@ -1,1 +1,1 @@
-{"node": "scope","id": 0,"childScope": {"node": "childScope","0": {"node": "scope","id": 1,"childScope": {"node": "childScope","0": {"node": "scope","id": 2}}}}}
+{"node": "scope","id": 0,"childScope": {"node": "childScope","0": {"node": "scope","id": 1,"vars": {"node": "vars","0": "i"},"childScope": {"node": "childScope","0": {"node": "scope","id": 2,"childScope": {"node": "childScope","0": {"node": "scope","id": 3},"1": {"node": "scope","id": 4}}}}}}}
