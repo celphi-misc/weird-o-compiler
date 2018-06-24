@@ -1,0 +1,28 @@
+var __var = 3;
+
+var val = __var;
+
+function foo() {
+    var bar = val << 2;
+    __var += val * bar > 0 ? __var : val >> __var   // Semicolon missed
+    return bar + __var;
+}
+
+function main(argc, argv)
+{
+    var a = "hello world";
+    else print(4);              // Mismatched else statement
+    function hello(para1, para2) { return null; }
+    if(a == "hello") {
+        for(var i = 0; i < 10; i++)
+        {
+            print(1 + 1 = 3);   // Non-left-value
+        }
+    } else if(a[0] == 'h')
+    {
+        print(a);
+    } else {
+        print("foo")    // Yet another semicolon missed
+    }
+    return 0;
+}

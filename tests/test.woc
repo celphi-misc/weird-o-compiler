@@ -5,7 +5,6 @@ var val = __var;
 function foo() {
     var bar = val << 2;
     __var += val * bar > 0 ? __var : val >> __var;
-    switch (bar) { case 1: return foo(1); break; case 2: return foo(2); default: return ++bar; }
     return bar + __var;
 }
 
