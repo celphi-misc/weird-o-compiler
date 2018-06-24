@@ -1,0 +1,13 @@
+function main(argc, argv) {
+    if(argv[0]) {
+        print(argv[0]);
+    }
+    if(argc > 2) {
+        print(argc);
+        print(3.14159265358979);
+    }
+    else {
+        print("hello");
+    }
+    return argc;
+}

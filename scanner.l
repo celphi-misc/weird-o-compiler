@@ -92,7 +92,7 @@ exp     [Ee][+-]?{digit}+
                             yylval->floatVal = result;
                             return FLT;
                         }
-{digit}*"."{digit}*exp? {
+{digit}*"."{digit}*(exp)? {
                             YY_UPDATE;
                             double result;
                             sscanf(yytext, "%lf", &result);
@@ -153,7 +153,7 @@ exp     [Ee][+-]?{digit}+
 ")"			            { YY_UPDATE; return RPAREN;    }
 ("["|"<:")		        { YY_UPDATE; return LBRACKET;  }
 ("]"|":>")		        { YY_UPDATE; return RBRACKET;  }
-"."			            { YY_UPDATE; return DOT;       }
+ /*"."			            { YY_UPDATE; return DOT;       } */
 "&"			            { YY_UPDATE; return B_AND;     }
 "!"			            { YY_UPDATE; return NOT;       }
 "~"			            { YY_UPDATE; return B_NOT;     }

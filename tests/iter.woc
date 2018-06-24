@@ -1,0 +1,26 @@
+var n = 10;
+
+function main(argc, argv) {
+    for(var i = 0; i < n; i++) {
+        print(i);
+    }
+
+    var j = n - 1;
+
+    while(j) {
+        print(j);
+        j--;
+    }
+
+    do {
+        print(j);
+        j++;
+    } while(j < n);
+
+    loop:
+    print(j);
+    j--;
+    if(j > 0) goto loop;
+
+    return argv[argc - 1];
+}

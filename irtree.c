@@ -181,7 +181,7 @@ TreeNode IRLoadParams(pNode node){
         // 2. register vars in contemporary scope's varList
         // 3. move params from memory <<<<< OR TEMP? How to Implement?
         int count = 1;
-        if(node->kind == A_ID){
+        if(node->kind != A_EXPS){
             currentFunction->numOfParams = count;
             newVar(node->u.name);
             char* tempName = "s";
@@ -805,7 +805,7 @@ TreeNode IRStoreParams(pNode node){
     } else {
         // move params to TEMP
         int count = 1;
-        if(!node->u.exps.right){
+        if(node->kind != A_EXPS){
             char* tempName = "s";
             appendName(tempName, count-1);
             // MOVE: Para1 <- S1

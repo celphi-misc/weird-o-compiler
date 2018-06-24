@@ -54,7 +54,7 @@ static int printBuffer(pNode node, char *buf)
         case A_INT:
             buf += sprintf(buf, "\"node\":\"int\",\"val\":%lld", node->u.intVal); break;
         case A_FLOAT:
-            buf += sprintf(buf, "\"node\":\"float\",\"val\":%lf", node->u.floatVal); break;
+            buf += sprintf(buf, "\"node\":\"float\",\"val\":%.18lf", node->u.floatVal); break;
         case A_BOOLEAN:
             buf += sprintf(buf, "\"node\":\"boolean\",\"val\":%s", node->u.booleanVal?"true":"false"); break;
         case A_STRING:
