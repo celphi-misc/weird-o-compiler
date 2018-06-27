@@ -113,6 +113,7 @@ TreeNode IRFunction(pNode node){
     fprintf(stdout, "in IRFunction\n");
 #endif
     currentScope = newScope();
+    currentScope->type = FUNCTION_SCOPE;
     // register function
     newFunction(node->u.functionExp.id);
 
@@ -137,7 +138,7 @@ TreeNode IRFunction(pNode node){
     ((left->childs)[1]->childs)[0] = IRLoadParams(node->u.functionExp.para_list);
     ((left->childs)[1]->childs)[1] = IRBlock(node->u.functionExp.block);
 // right child: (LABEL(ret), TEMP(ret));
-    char* nameRet = "ret";
+    char* nameRet = "__AUTO_LABEL_RET";
     char** newName = (char**)malloc(sizeof(char*));
     TreeNode labelRet = IRAutoLabel(nameRet, newName);
     nameRet = *newName;
@@ -149,7 +150,7 @@ TreeNode IRFunction(pNode node){
     right->numOfChild = 2;
     right->childs = newNodeList(2);
     (right->childs)[0] = labelRet;
-    (right->childs)[1] = IRTemp("ret");
+    (right->childs)[1] = IRTemp("__AUTO_REG_RET");
 
     currentScope = currentScope->father;
     if(!error) return this; else return NULL;
@@ -184,7 +185,7 @@ TreeNode IRLoadParams(pNode node){
         if(node->kind != A_EXPS){
             currentFunction->numOfParams = count;
             newVar(node->u.name);
-            char* tempName = "s";
+            char* tempName = "__AUTO_REG_S";
             tempName = appendName(tempName, count-1);
             // Load Para from Temp: Para1 <- S1
             return IRLoadT(node, tempName);
@@ -197,7 +198,7 @@ TreeNode IRLoadParams(pNode node){
             ptr->pos = p->pos;
             ptr->numOfChild = 2;
             ptr->childs = newNodeList(2);
-            char* tempName = "s";
+            char* tempName = "__AUTO_REG_S";
             tempName = appendName(tempName, count-1);
             (ptr->childs)[0] = IRLoadT(p->u.exps.left, tempName);
 
@@ -210,7 +211,7 @@ TreeNode IRLoadParams(pNode node){
             }
         }
         currentFunction->numOfParams = count;
-        char* tempName = "s";
+        char* tempName = "__AUTO_REG_S";
         tempName = appendName(tempName, count-1);
         (ptr->childs)[1] = IRLoadT(p, tempName);        
         if(!error) return this; else return NULL;
@@ -274,10 +275,11 @@ TreeNode IRIf(pNode node){
     fprintf(stdout, "in IRIf\n");
 #endif
     currentScope = newScope();
+    currentScope->type = IF_SCOPE;
 // generate three auto labels
-    char* nameT = "TRUE";
-    char* nameF = "FALSE";
-    char* nameD = "DONE";
+    char* nameT = "__AUTO_LABEL_TRUE";
+    char* nameF = "__AUTO_LABEL_FALSE";
+    char* nameD = "__AUTO_LABEL_DONE";
     char** newName = (char**)malloc(sizeof(char*));
     TreeNode labelT = IRAutoLabel(nameT, newName);
     nameT = *newName;
@@ -294,7 +296,7 @@ TreeNode IRIf(pNode node){
 // CJUMP: if(exp==TRUE) then Tlabel else Flabel
     Const c = newConst();
     c->type = C_BOOLEAN;
-    c->v.booleanV = FALSE;
+    c->v.booleanV = TRUE;
     (this->childs)[0] = IRCjump("EQ", node->u.ifExp.test, IRConst(c), nameT, nameF);
 // SEQ Tree: first TRUE, then FALSE, then Done
     (this->childs)[1] = IRSeq(
@@ -393,11 +395,12 @@ TreeNode IRFor(pNode node){
     fprintf(stdout, "in IRFor\n");
 #endif
     currentScope = newScope();
+    currentScope->type = LOOP_SCOPE;
 
-    char* nameTest = "test";
-    char* nameStart = "start";
-    char* nameCont = "cont";
-    char* nameBreak = "break";
+    char* nameTest = "__AUTO_LABEL_TEST";
+    char* nameStart = "__AUTO_LABEL_START";
+    char* nameCont = "__AUTO_LABEL_CONT";
+    char* nameBreak = "__AUTO_LABEL_BREAK";
     char** newName = (char**)malloc(sizeof(char*));
     TreeNode labelTest = IRAutoLabel(nameTest, newName);
     nameTest = *newName;
@@ -439,10 +442,11 @@ TreeNode IRWhile(pNode node){
     fprintf(stdout, "in IRWhile\n");
 #endif
     currentScope = newScope();
+    currentScope->type = LOOP_SCOPE;
 
-    char* nameTest = "test";
-    char* nameCont = "cont";
-    char* nameBreak = "break";
+    char* nameTest = "__AUTO_LABEL_TEST";
+    char* nameCont = "__AUTO_LABEL_CONT";
+    char* nameBreak = "__AUTO_LABEL_BREAK";
     char** newName = (char**)malloc(sizeof(char*));
     TreeNode labelTest = IRAutoLabel(nameTest, newName);
     nameTest = *newName;
@@ -478,10 +482,11 @@ TreeNode IRDo(pNode node){
     fprintf(stdout, "in IRDo\n");
 #endif
     currentScope = newScope();
+    currentScope->type = LOOP_SCOPE;
 
-    char* nameTest = "test";
-    char* nameCont = "cont";
-    char* nameBreak = "break";
+    char* nameTest = "__AUTO_LABEL_TEST";
+    char* nameCont = "__AUTO_LABEL_CONT";
+    char* nameBreak = "__AUTO_LABEL_BREAK";
     char** newName = (char**)malloc(sizeof(char*));
     TreeNode labelTest = IRAutoLabel(nameTest, newName);
     nameTest = *newName;
@@ -545,7 +550,7 @@ TreeNode IRReturn(pNode node){
     left->pos = node->pos;
     left->numOfChild = 2;
     left->childs = newNodeList(2);
-    char* tempName = "ret";
+    char* tempName = "__AUTO_REG_RET";
     (left->childs)[0] = IRTemp(tempName);
     (left->childs)[1] = IRHerald(node->u.returnExp.exp);
 // right child: JUMP(ret);
@@ -555,8 +560,14 @@ TreeNode IRReturn(pNode node){
     right->pos = node->pos;
     right->numOfChild = 1;
     right->childs = newNodeList(1);
-    char* jumpName = "ret";
-    jumpName = appendName(jumpName, currentScope->id);
+    char* jumpName = "__AUTO_LABEL_RET";
+    Scope tempScope = currentScope;
+    while(tempScope->type != FUNCTION_SCOPE) tempScope = tempScope->father;
+    if(!tempScope) {
+        error = TRUE;
+        return NULL;
+    }
+    jumpName = appendName(jumpName, tempScope->id);
 #ifdef _DEBUG
     fprintf(stdout, "here");
 #endif
@@ -573,8 +584,14 @@ TreeNode IRBreak(pNode node){
     this->pos = node->pos;
     this->numOfChild = 1;
     this->childs = newNodeList(1);
-    char* name = "break";
-    name = appendName(name, currentScope->id);
+    char* name = "__AUTO_LABEL_BREAK";
+    Scope tempScope = currentScope;
+    while(tempScope->type != LOOP_SCOPE) tempScope = tempScope->father;
+    if(!tempScope) {
+        error = TRUE;
+        return NULL;
+    }
+    name = appendName(name, tempScope->id);
     (this->childs)[0] = IRLeafName(name);
     if(!error) return this; else return NULL;
 }
@@ -588,8 +605,14 @@ TreeNode IRContinue(pNode node){
     this->pos = node->pos;
     this->numOfChild = 1;
     this->childs = newNodeList(1);
-    char* name = "cont";
-    name = appendName(name, currentScope->id);
+    char* name = "__AUTO_LABEL_CONT";
+    Scope tempScope = currentScope;
+    while(tempScope->type != LOOP_SCOPE) tempScope = tempScope->father;
+    if(!tempScope) {
+        error = TRUE;
+        return NULL;
+    }
+    name = appendName(name, tempScope->id);
     (this->childs)[0] = IRLeafName(name);
     if(!error) return this; else return NULL;
 }
@@ -653,10 +676,11 @@ TreeNode IRTrinary(pNode node){
     fprintf(stdout, "in IRTrinary\n");
 #endif
     currentScope = newScope();
+    currentScope->type = IF_SCOPE;
 // generate three auto labels
-    char* nameT = "TRUE";
-    char* nameF = "FALSE";
-    char* nameD = "DONE";
+    char* nameT = "__AUTO_LABEL_TRUE";
+    char* nameF = "__AUTO_LABEL_FALSE";
+    char* nameD = "__AUTO_LABEL_DONE";
     char** newName = (char**)malloc(sizeof(char*));
     TreeNode labelT = IRAutoLabel(nameT, newName);
     nameT = *newName;
@@ -791,6 +815,7 @@ TreeNode IRCall(pNode node){
     fprintf(stdout, "in IRCall\n");
 #endif
     currentScope = newScope();
+    currentScope->type = CALL_SCOPE;
 
     TreeNode this = newTreeNode();
     this->name = TreeNodeName[ESEQ];
@@ -820,8 +845,8 @@ TreeNode IRStoreParams(pNode node){
         // move params to TEMP
         int count = 1;
         if(node->kind != A_EXPS){
-            char* tempName = "s";
-            appendName(tempName, count-1);
+            char* tempName = "__AUTO_REG_S";
+            tempName = appendName(tempName, count-1);
             // Store: S1 <- para1
             return IRStoreT(node, tempName);
         }
@@ -833,7 +858,7 @@ TreeNode IRStoreParams(pNode node){
             ptr->pos = p->pos;
             ptr->numOfChild = 2;
             ptr->childs = newNodeList(2);
-            char* tempName = "s";
+            char* tempName = "__AUTO_REG_S";
             tempName = appendName(tempName, count-1);
             (ptr->childs)[0] = IRStoreT(p->u.exps.left, tempName);
             count++;
@@ -844,7 +869,7 @@ TreeNode IRStoreParams(pNode node){
                 ptr = (ptr->childs)[1];
             }
         }
-        char* tempName = "s";
+        char* tempName = "__AUTO_REG_S";
         tempName = appendName(tempName, count-1);
         (ptr->childs)[1] = IRStoreT(p, tempName); 
         if(!error) return this; else return NULL;
@@ -1196,7 +1221,24 @@ int printScopeContent(Scope node, char* buf){
     if(!node) return 0;
     char* oldBuf = buf;
     buf+=sprintf(buf, "{\"node\": \"scope\",");
-    buf+=sprintf(buf, "\"id\": %d", node->id);
+    buf+=sprintf(buf, "\"id\": %d,", node->id);
+    switch(node->type){
+        case GLOBAL_SCOPE:
+            buf+= sprintf(buf, "\"type\": \"GLOBAL\"");
+            break;
+        case FUNCTION_SCOPE:
+            buf+= sprintf(buf, "\"type\": \"FUNCTION\"");
+            break;
+        case CALL_SCOPE:
+            buf+= sprintf(buf, "\"type\": \"CALL\"");
+            break;
+        case IF_SCOPE:
+            buf+= sprintf(buf, "\"type\": \"IF\"");
+            break;
+        case LOOP_SCOPE:
+            buf+= sprintf(buf, "\"type\": \"LOOP\"");
+            break;
+    }
     if(node->varList){
         buf+=sprintf(buf, ",\"vars\": {");
         buf+=sprintf(buf, "\"node\": \"vars\"");

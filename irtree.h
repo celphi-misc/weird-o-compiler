@@ -44,6 +44,7 @@ struct var_t{
 typedef struct scope_t* Scope;
 struct scope_t{
     int id;
+    enum {GLOBAL_SCOPE, FUNCTION_SCOPE, CALL_SCOPE, IF_SCOPE, LOOP_SCOPE} type;
     Var varList;
     Label autoLabelList;
     Scope father;
