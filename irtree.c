@@ -186,8 +186,8 @@ TreeNode IRLoadParams(pNode node){
             newVar(node->u.name);
             char* tempName = "s";
             tempName = appendName(tempName, count-1);
-            // MOVE: Para1 <- S1
-            return IRMoveT(node, tempName);
+            // Load Para from Temp: Para1 <- S1
+            return IRLoadT(node, tempName);
         }
         pNode p = node;
         TreeNode this = newTreeNode();
@@ -199,7 +199,7 @@ TreeNode IRLoadParams(pNode node){
             ptr->childs = newNodeList(2);
             char* tempName = "s";
             tempName = appendName(tempName, count-1);
-            (ptr->childs)[0] = IRMoveT(p->u.exps.left, tempName);
+            (ptr->childs)[0] = IRLoadT(p->u.exps.left, tempName);
 
             count++;
             p = p->u.exps.right;
@@ -212,7 +212,7 @@ TreeNode IRLoadParams(pNode node){
         currentFunction->numOfParams = count;
         char* tempName = "s";
         tempName = appendName(tempName, count-1);
-        (ptr->childs)[1] = IRMoveT(p, tempName);        
+        (ptr->childs)[1] = IRLoadT(p, tempName);        
         if(!error) return this; else return NULL;
     }
 }
@@ -229,9 +229,9 @@ TreeNode IRNil(){
     if(!error) return this; else return NULL;
 }
 
-TreeNode IRMoveT(pNode node, char* tempName){
+TreeNode IRLoadT(pNode node, char* tempName){
 #ifdef _DEBUG
-    fprintf(stdout, "in IRMoveT\n");
+    fprintf(stdout, "in IRLoadT\n");
 #endif
     TreeNode this = newTreeNode();
     this->name = TreeNodeName[MOVE];
@@ -736,6 +736,20 @@ TreeNode IRPreUnary(pNode node){
     }
 }
 
+TreeNode IRLeafConst(char* name){
+#ifdef _DEBUG
+    fprintf(stdout, "in IRLeafConst\n");
+#endif
+    TreeNode this = newTreeNode();
+    this->name = (char*)malloc(strlen(name)+1);
+    this->isStr = 0;
+    strcpy(this->name, name);
+    this->pos = -1;
+    this->numOfChild = 0;
+    this->childs = NULL;
+    if(!error) return this; else return NULL;
+}
+
 TreeNode IRConst(Const c){
 #ifdef _DEBUG
     fprintf(stdout, "in IRConst\n");
@@ -748,18 +762,18 @@ TreeNode IRConst(Const c){
     switch(c->type){
         case C_INT:
             this->isStr = 0;
-            (this->childs)[0] = IRLeafName(int2string((int)c->v.intV));
+            (this->childs)[0] = IRLeafConst(int2string((int)c->v.intV));
             break;
         case C_FLOAT:
             this->isStr = 0;
-            (this->childs)[0] = IRLeafName(float2string(c->v.floatV));
+            (this->childs)[0] = IRLeafConst(float2string(c->v.floatV));
             break;
         case C_STRING:
             (this->childs)[0] = IRLeafName(c->v.stringV);
             break;
         case C_BOOLEAN:
             this->isStr = 0;
-            (this->childs)[0] = IRLeafName(bool2string(c->v.booleanV));
+            (this->childs)[0] = IRLeafConst(bool2string(c->v.booleanV));
             break; 
     }
     if(!error) return this; else return NULL;
@@ -808,8 +822,8 @@ TreeNode IRStoreParams(pNode node){
         if(node->kind != A_EXPS){
             char* tempName = "s";
             appendName(tempName, count-1);
-            // MOVE: Para1 <- S1
-            return IRLoadT(node, tempName);
+            // Store: S1 <- para1
+            return IRStoreT(node, tempName);
         }
         pNode p = node;
         TreeNode this = newTreeNode();
@@ -821,7 +835,7 @@ TreeNode IRStoreParams(pNode node){
             ptr->childs = newNodeList(2);
             char* tempName = "s";
             tempName = appendName(tempName, count-1);
-            (ptr->childs)[0] = IRLoadT(p->u.exps.left, tempName);
+            (ptr->childs)[0] = IRStoreT(p->u.exps.left, tempName);
             count++;
             p = p->u.exps.right;
             // last node in para_list is A_ID in kind
@@ -832,14 +846,14 @@ TreeNode IRStoreParams(pNode node){
         }
         char* tempName = "s";
         tempName = appendName(tempName, count-1);
-        (ptr->childs)[1] = IRLoadT(p, tempName); 
+        (ptr->childs)[1] = IRStoreT(p, tempName); 
         if(!error) return this; else return NULL;
     }
 }
 
-TreeNode IRLoadT(pNode node, char* tempName){
+TreeNode IRStoreT(pNode node, char* tempName){
 #ifdef _DEBUG
-    fprintf(stdout, "in IRLoadT\n");
+    fprintf(stdout, "in IRStoreT\n");
 #endif
     TreeNode this = newTreeNode();
     this->name = TreeNodeName[MOVE];

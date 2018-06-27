@@ -100,7 +100,7 @@ TreeNode IRFunction(pNode node);
 TreeNode IRName(pNode node);
 TreeNode IRLoadParams(pNode node);
 TreeNode IRNil();
-TreeNode IRMoveT(pNode node, char* tempName);
+TreeNode IRLoadT(pNode node, char* tempName);
 TreeNode IRTemp(char* name);
 TreeNode IRLeafName(char* name);
 TreeNode IRIf(pNode node);
@@ -124,11 +124,12 @@ TreeNode IRTrinary(pNode node);
 TreeNode IRBinary(pNode node);
 TreeNode IROp(Op operatorr);
 TreeNode IRPreUnary(pNode node);
+TreeNode IRLeafConst(char* name);
 TreeNode IRConst(Const c);
 TreeNode IRPostUnary(pNode node);
 TreeNode IRCall(pNode node);
 TreeNode IRStoreParams(pNode node);
-TreeNode IRLoadT(pNode node, char* tempName);
+TreeNode IRStoreT(pNode node, char* tempName);
 TreeNode IRFactor(pNode node);
 
 
