@@ -6,6 +6,7 @@
 #include "warn.h"
 #include "ast_print.h"
 #include "irtree.h"
+#include "assemble.h"
 
 extern int yylineno;
 extern FILE *yyin;
@@ -407,10 +408,10 @@ int main(int argc, char **argv)
         else {
             // what you want to do in DEBUG mode
             TreeNode IRroot = IRTree(ASTroot);
-            json = createIRJsonStr(IRroot);
+            Assemble* instructions = Convert2Assemble(IRroot);
         }
         if(target_type == DEBUG) {
-            fprintf(stdout, "%s", json);
+            //fprintf(stdout, "%s", json);
         } else {
             for(i = strlen(argv[1]); i >= 0; i--)
             {
