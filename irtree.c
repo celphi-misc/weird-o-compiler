@@ -118,7 +118,7 @@ TreeNode IRFunction(pNode node){
     newFunction(node->u.functionExp.id);
 
     TreeNode this = newTreeNode();
-    this->name = TreeNodeName[ESEQ];
+    this->name = TreeNodeName[SEQ];
     this->pos = node->pos;
     this->numOfChild = 2;
     this->childs = newNodeList(2);
@@ -145,7 +145,7 @@ TreeNode IRFunction(pNode node){
 
     (this->childs)[1] = newTreeNode();
     TreeNode right = (this->childs)[1];
-    right->name = TreeNodeName[ESEQ];
+    right->name = TreeNodeName[SEQ];
     right->pos = node->pos;
     right->numOfChild = 2;
     right->childs = newNodeList(2);

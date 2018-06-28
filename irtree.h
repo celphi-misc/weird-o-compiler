@@ -62,8 +62,8 @@ struct function_t{
 
 string TreeNodeName[14];
 
-// RET and NIT are self-defined node types
-// RET: 2 children, move return value to TEMP(ret);
+// EXPR is EXP in tiger, this name is to avoid duplication MACROs in ast
+// MEM and EXPR are never used
 // NIL: empty node
 enum { 
     CONST, NAME, TEMP, BINOP, 
