@@ -347,7 +347,7 @@ factor          : INT                       { $$ = A_IntExp(yylineno, $1); }
 
 int main(int argc, char **argv)
 {
-    typedef enum { AST, IR, IRSCOPE, DEBUG } TargetType;
+    typedef enum { AST, IR, IRSCOPE, ASSEMBLE, DEBUG } TargetType;
     TargetType target_type = AST;
     if(argc > 1)
     {
@@ -367,7 +367,10 @@ int main(int argc, char **argv)
                 target_type = IR;
             }else if(argv[2][1] == 's') {
                 target_type = IRSCOPE;
-            } else {    
+            } else if (argv[2][1] == 'c' ){
+                target_type = ASSEMBLE;
+            } else      
+            {    
                 target_type = DEBUG;
             }
         }
@@ -405,13 +408,16 @@ int main(int argc, char **argv)
             IRTree(ASTroot);
             json = printScopeAndVar();
         }
-        else {
-            // what you want to do in DEBUG mode
+        else if(target_type == ASSEMBLE){
             TreeNode IRroot = IRTree(ASTroot);
             Assemble* instructions = Convert2Assemble(IRroot);
+            json = printAssemble();
+        }
+        else {
+            // what you want to do in DEBUG mode
         }
         if(target_type == DEBUG) {
-            //fprintf(stdout, "%s", json);
+            fprintf(stdout, "%s", json);
         } else {
             for(i = strlen(argv[1]); i >= 0; i--)
             {
@@ -419,7 +425,8 @@ int main(int argc, char **argv)
             }
             strncpy(output_filename, argv[1], i);
             output_filename[i] = 0;
-            strcat(output_filename, target_type == AST ? ".ast.json" : target_type == IR ? ".ir.json" : ".irscope.json");
+            strcat(output_filename, target_type == AST ? ".ast.json" : target_type == IR ? ".ir.json" : 
+                target_type == IRSCOPE ? ".irscope.json" : ".wocasm");
             output_file = fopen(output_filename, "w");
             if(output_file)
             {

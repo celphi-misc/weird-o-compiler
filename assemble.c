@@ -2,12 +2,35 @@
 
 #define MAX_ASSEMBLE_LENGTH 4096
 
+string instructionName[52] = {
+    "MOVE", "LOAD", "STORE",
+    "ADD", "SUB", "INC", "DEC", "NOT", "BNOT",
+    "MUL", "DIV", "MOD", "BL", "BR", 
+    "LE", "GE", "LT", "GT",
+    "EQ", "NEQ",
+    "BAND", "BXOR", "BOR",
+    "AND", "OR", "DOT", "MEM",
+
+    "ADDI", "SUBI", "MULI", "DIVI", "MODI",
+    "BLI", "BRI",
+    "LEQI", "GEQI", "LTI", "GTI",
+    "EQI", "NEQI",
+    "BANDI", "BXORI", "BORI",
+    "ANDI", "ORI",
+    
+    "BEQ", "BNE", "BNZ",
+    "JUMP", "JA", "JR", "CALL"
+};
+
 Assemble instructions[MAX_ASSEMBLE_LENGTH];
+string labels[MAX_ASSEMBLE_LENGTH];
 int line = 0;
 int tempReg = 0;
 
 Assemble* Convert2Assemble(TreeNode root){
+    initAss();
     processNode(root);
+    copyLabels();
     return instructions;
 }
 
@@ -27,7 +50,6 @@ int processNodeBinop(TreeNode node){
     // post-order iteration
     // if fact1 is const value then it is automic 
     if(strcmp(fact1->name, "CONST")==0){
-        inst->fac2.lbl = inst->fac2.reg = NULL;
         TreeNode child = fact1->childs[0];
         if(child->isStr){
             inst->fac2.val.type = STRING_ASS;
@@ -45,17 +67,18 @@ int processNodeBinop(TreeNode node){
                 inst->fac2.val.v.intVal = string2int(child->name);
             }
         }
+        inst->fac2.lbl = inst->fac2.reg = NULL;
     } 
     // if it is a temp(var) then just use var's name as reg name
     else if (strcmp(fact1->name, "TEMP") == 0){
-        inst->fac2.lbl = NULL;
         inst->fac2.reg = copyString(fact1->childs[0]->name);
+        inst->fac2.lbl = NULL;
     } 
     // otherwise this operand is a expression, do recursively
     else {
         int regNum = processNode(fact1);
-        inst->fac2.lbl = NULL;
         inst->fac2.reg = appendName("T", regNum);
+        inst->fac2.lbl = NULL;
     }
     // if-else cases for fact2, same as fact1
     if(strcmp(fact2->name, "CONST")==0){
@@ -267,15 +290,18 @@ int processNodeBinop(TreeNode node){
         }
     } else if(strcmp(op->name, "DOT") == 0){
         inst->inst = DOT_ASS;
+        inst->type = R;
     } else if(strcmp(op->name, "BRACKET") == 0){
-        if(strcmp(fact1->name, "CONST")==0 ||
-            strcmp(fact2->name, "CONST") == 0){
-            inst->inst = BRACKETI_ASS;
-            inst->type = I;
-        } else {
-            inst->inst = BRACKET_ASS;
-            inst->type = R;
-        }
+        // if(strcmp(fact1->name, "CONST")==0 ||
+        //     strcmp(fact2->name, "CONST") == 0){
+        //     inst->inst = BRACKETI_ASS;
+        //     inst->type = I;
+        // } else {
+        //     inst->inst = BRACKET_ASS;
+        //     inst->type = R;
+        // }
+        inst->inst = MEM_ASS;
+        inst->type = R;
     }
     inst->fac1.reg = appendName("T", tempReg);
     tempReg ++;
@@ -286,18 +312,19 @@ int processNodeBinop(TreeNode node){
 
 int processNodeCall(TreeNode node){
     Assemble inst = newInst();
-    inst->lbl = NULL;
     inst->type = J;
-    inst->inst = JMP_ASS;
-    inst->fac1.reg = copyString(node->childs[0]->name);
+    inst->inst = CALL_ASS;
+    inst->lbl = NULL;
+    inst->fac1.lbl = copyString(node->childs[0]->name);
+    inst->fac1.reg = NULL;
     instructions[line] = inst;
     line ++;
 
     inst = newInst();
-    inst->lbl = NULL;
     inst->type = R;
     inst->inst = MOV_ASS;
     inst->fac1.reg = appendName("T", tempReg);
+    inst->lbl = NULL;
     tempReg ++;
     inst->fac2.reg = "RO";
     instructions[line] = inst;
@@ -305,22 +332,40 @@ int processNodeCall(TreeNode node){
     return tempReg - 1;
 }
 
-// require re-write!
 int processNodeEseq(TreeNode node){
     processNode(node->childs[0]);
-    return processNode(node->childs[1]);
-}
-
-void processNodeMove(TreeNode node){
     Assemble inst = newInst();
     inst->lbl = NULL;
     inst->type = R;
     inst->inst = MOV_ASS;
-    inst->fac1.reg = copyString(node->childs[0]->name);
+    inst->fac1.lbl = NULL;
+    inst->fac1.reg = appendName("T", tempReg);
+    tempReg ++;
+    inst->fac2.lbl = NULL;
+    if(strcmp(node->childs[1]->name, "TEMP") == 0){
+        inst->fac2.reg = copyString(node->childs[1]->childs[0]->name);
+        inst->fac3.lbl = NULL;
+        inst->fac3.reg = NULL;
+    } else{
+        int tempReg = processNode(node->childs[1]);
+        inst->fac2.reg = appendName("T", tempReg);
+        inst->fac2.lbl = NULL;
+        inst->fac3.reg = NULL;
+    }
+    instructions[line] = inst;
+    line++;
+    return tempReg - 1;
+}
+
+void processNodeMove(TreeNode node){
+    Assemble inst = newInst();
+    inst->type = R;
+    inst->inst = MOV_ASS;
+    inst->lbl = NULL;
+    inst->fac1.reg = copyString(node->childs[0]->childs[0]->name);
     // process right node
     TreeNode rightChild = node->childs[1];
     if(strcmp(rightChild->name, "CONST")==0){
-        inst->fac2.lbl = inst->fac2.reg = NULL;
         TreeNode child = rightChild->childs[0];
         if(child->isStr){
             inst->fac2.val.type = STRING_ASS;
@@ -338,17 +383,19 @@ void processNodeMove(TreeNode node){
                 inst->fac2.val.v.intVal = string2int(child->name);
             }
         }
+        inst->fac2.lbl = NULL;
+        inst->fac2.reg = NULL;
     } 
     // if it is a temp(var) then just use var's name as reg name
     else if (strcmp(rightChild->name, "TEMP") == 0){
-        inst->fac2.lbl = NULL;
         inst->fac2.reg = copyString(rightChild->childs[0]->name);
+        inst->fac2.lbl = NULL;
     } 
     // otherwise this operand is a expression, do recursively
     else {
         int regNum = processNode(rightChild);
-        inst->fac2.lbl = NULL;
         inst->fac2.reg = appendName("T", regNum);
+        inst->fac2.lbl = NULL;
     }
     instructions[line] = inst;
     line++;
@@ -356,11 +403,37 @@ void processNodeMove(TreeNode node){
 
 void processNodeJump(TreeNode node){
     Assemble inst = newInst();
+    inst->type = J;
+    inst->inst = JMP_ASS;
+    inst->lbl = NULL;
+    inst->fac1.lbl = copyString(node->childs[0]->name);
+    inst->fac1.reg = NULL;
+
+    instructions[line] = inst;
+    line++;
+}
+
+void processNodeCjump(TreeNode node){
+    Assemble inst = newInst();
+    int tempReg = processNode(node->childs[1]);
+    inst->lbl = NULL;
+    inst->type = J;
+    inst->inst = BEQ_ASS;
+    inst->fac1.lbl = NULL;
+    inst->fac1.reg = appendName("T", tempReg);
+    inst->fac2.lbl = NULL;
+    inst->fac2.reg = NULL;
+    inst->fac2.val.type = INT_ASS;
+    inst->fac2.val.v.intVal = 0;
+    inst->fac3.lbl = copyString(node->childs[3]->name);
+    instructions[line] = inst;
+    line++;
+
+    inst = newInst();
     inst->lbl = NULL;
     inst->type = J;
     inst->inst = JMP_ASS;
-    inst->fac1.reg = copyString(node->childs[0]->name);
-
+    inst->fac1.lbl = copyString(node->childs[4]->name);
     instructions[line] = inst;
     line++;
 }
@@ -372,9 +445,10 @@ void processNodeSeq(TreeNode node){
 
 void processNodeLabel(TreeNode node){
     // just copy label name to instruct label field
-    Assemble inst = newInst();
-    inst->lbl = copyString(node->childs[0]->name);
-    instructions[line] = inst;
+    // Assemble inst = newInst();
+    // inst->lbl = copyString(node->childs[0]->name);
+    // instructions[line] = inst;
+    labels[line] = copyString(node->childs[0]->name);
 }
 
 int processNode(TreeNode node){
@@ -409,6 +483,15 @@ int processNode(TreeNode node){
     return 0;
 }
 
+void copyLabels(){
+    for(int i = 0; i< line; i++){
+        if(labels[i]){
+            instructions[i]->lbl = copyString(labels[i]);
+        }
+    }
+}
+
+// utils
 Assemble newInst(){
     Assemble ret= (Assemble)malloc(sizeof(*ret));
     ret->lbl = NULL;
@@ -461,13 +544,111 @@ double string2float(string str){
     return ret;
 }
 
-long string2int(string str){
+long long string2int(string str){
     int length = strlen(str);
     int i = 0;
-    long ret = 0;
+    long long ret = 0;
     while(i<length){
         ret = ret*10 + str[i] - '0';
         i++;
     }
     return ret;
+}
+
+void initAss(){
+    for(int i = 0; i< MAX_ASSEMBLE_LENGTH; i++){
+        instructions[i] = NULL;
+        labels[i] = NULL;
+    }
+}
+
+#define BUF_SIZE 0xfff2
+char buffer[BUF_SIZE];
+
+char* printAssemble(){
+    for(int i = 0; i< BUF_SIZE; i++){
+        buffer[i] = 0;
+    }
+    char* pb = buffer;
+    for(int i = 0; i < line; i++){
+        if(instructions[i]->lbl == NULL)
+            pb+= sprintf(pb, "\t\t\t");
+        else 
+            pb+= sprintf(pb, "%s:\t", instructions[i]->lbl);
+        pb+= sprintf(pb, "%s \t", instructionName[instructions[i]->inst]);
+        if(instructions[i]->type == R ){
+            pb+=sprintf(pb, "%s", 
+                instructions[i]->fac1.reg);
+            if(instructions[i]->fac2.reg)
+                pb+=sprintf(pb, ", %s", instructions[i]->fac2.reg);
+            else{
+                switch(instructions[i]->fac2.val.type){
+                    case INT_ASS:
+                        pb+=sprintf(pb, ", %lld", instructions[i]->fac2.val.v.intVal);
+                        break;
+                    case FLOAT_ASS:
+                        pb+=sprintf(pb, ", %.18lf", instructions[i]->fac2.val.v.floatVal);
+                        break;
+                    case STRING_ASS:
+                        pb+=sprintf(pb, ", %s", instructions[i]->fac2.val.v.stringVal);
+                        break;
+                    case BOOL_ASS:
+                        pb+=sprintf(pb, ", %d", instructions[i]->fac2.val.v.boolVal);
+                        break;
+                }
+            }
+            if(instructions[i]->fac3.reg)
+                pb+=sprintf(pb, ", %s", instructions[i]->fac3.reg);
+        }
+        else if(instructions[i]->type == I){
+            pb+= sprintf(pb, "%s", instructions[i]->fac1.reg);
+            if(instructions[i]->fac2.reg){
+                pb+=sprintf(pb,", %s", instructions[i]->fac2.reg);
+            }else{
+                switch(instructions[i]->fac2.val.type){
+                    case INT_ASS:
+                        pb+=sprintf(pb, ", %lld", instructions[i]->fac2.val.v.intVal);
+                        break;
+                    case FLOAT_ASS:
+                        pb+=sprintf(pb, ", %.18lf", instructions[i]->fac2.val.v.floatVal);
+                        break;
+                    case STRING_ASS:
+                        pb+=sprintf(pb, ", %s", instructions[i]->fac2.val.v.stringVal);
+                        break;
+                    case BOOL_ASS:
+                        pb+=sprintf(pb, ", %d", instructions[i]->fac2.val.v.boolVal);
+                        break;
+                }
+            }
+            if(instructions[i]->fac3.reg){
+                pb+=sprintf(pb,", %s", instructions[i]->fac3.reg);
+            }else{
+                switch(instructions[i]->fac3.val.type){
+                    case INT_ASS:
+                        pb+=sprintf(pb, ", %lld", instructions[i]->fac3.val.v.intVal);
+                        break;
+                    case FLOAT_ASS:
+                        pb+=sprintf(pb, ", %.18lf", instructions[i]->fac3.val.v.floatVal);
+                        break;
+                    case STRING_ASS:
+                        pb+=sprintf(pb, ", %s", instructions[i]->fac3.val.v.stringVal);
+                        break;
+                    case BOOL_ASS:
+                        pb+=sprintf(pb, ", %d", instructions[i]->fac3.val.v.boolVal);
+                        break;
+                }
+            }
+        } else {
+            if(instructions[i]->inst == JMP_ASS ||
+                instructions[i]->inst == CALL_ASS)
+                pb+=sprintf(pb, "%s", instructions[i]->fac1.lbl);
+            else{
+                pb+=sprintf(pb, "%s", instructions[i]->fac1.reg);
+                pb+=sprintf(pb, ", 0");
+                pb+=sprintf(pb, ", %s", instructions[i]->fac3.lbl);
+            }
+        }
+        pb+=sprintf(pb, "\n");
+    }
+    return buffer;
 }
