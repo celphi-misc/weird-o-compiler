@@ -239,7 +239,7 @@ TreeNode IRLoadT(pNode node, char* tempName){
     this->pos = node->pos;
     this->numOfChild = 2;
     this->childs = newNodeList(2);
-    (this->childs)[0] = IRLeafName(node->u.name);
+    (this->childs)[0] = IRTemp(node->u.name);
     (this->childs)[1] = IRTemp(tempName);
     if(!error) return this; else return NULL;
 }
@@ -670,6 +670,17 @@ TreeNode IRAssign(pNode node){
     if(!error) return this; else return NULL;
 }
 
+TreeNode IRMove(TreeNode left ,TreeNode right){
+    TreeNode this = newTreeNode();
+    this->name = TreeNodeName[MOVE];
+    this->pos = -1;
+    this->numOfChild = 2;
+    this->childs = newNodeList(2);
+    (this->childs)[0] = left;
+    (this->childs)[1] = right;
+    if(!error) return this; else return NULL;
+}
+
 // same to if-else
 TreeNode IRTrinary(pNode node){
 #ifdef _DEBUG
@@ -689,6 +700,16 @@ TreeNode IRTrinary(pNode node){
     TreeNode labelD = IRAutoLabel(nameD, newName);
     nameD = *newName;
 
+// temporary var to save eseq value
+    char* nameVarTemp = appendName("__AUTO_VAR_TMP", currentScope->id);
+    newVar(nameVarTemp);
+    TreeNode nameTemp = newTreeNode();
+    nameTemp->name = TreeNodeName[NAME];
+    nameTemp->numOfChild = 1;
+    nameTemp->pos = node->pos;
+    nameTemp->childs = newNodeList(1);
+    nameTemp->childs[0] = IRLeafName(nameVarTemp);
+
     TreeNode this = newTreeNode();
     this->name = TreeNodeName[ESEQ];
     this->pos = node->pos;
@@ -698,19 +719,21 @@ TreeNode IRTrinary(pNode node){
     Const c= newConst();
     c->type = C_BOOLEAN;
     c->v.booleanV = TRUE;
-    (this->childs)[0] = IRCjump("EQ", node->u.trinaryExp.test, IRConst(c), nameT, nameF);
-// SEQ Tree: first TRUE, then FALSE, then Done
-    (this->childs)[1] = IRSeq(
-        labelT,IRSeq(
-            IRHerald(node->u.trinaryExp.ift), IRSeq(
-                IRJump(nameD), IRSeq(
-                    labelF, IRSeq(
-                        IRHerald(node->u.trinaryExp.iff), labelD
+    (this->childs)[0] = IRSeq(
+        IRSeq(nameTemp, IRCjump("EQ", node->u.trinaryExp.test, IRConst(c), nameT, nameF)),
+        IRSeq(
+            labelT,IRSeq(
+                IRMove(IRTemp(nameVarTemp), IRHerald(node->u.trinaryExp.ift)), IRSeq(
+                    IRJump(nameD), IRSeq(
+                        labelF, IRSeq(
+                            IRMove(IRTemp(nameVarTemp), IRHerald(node->u.trinaryExp.iff)), labelD
+                        )
                     )
                 )
             )
         )
     );
+    (this->childs)[1] = IRTemp(nameVarTemp);
     currentScope = currentScope->father;
     if(!error) return this; else return NULL;
 }
@@ -818,7 +841,7 @@ TreeNode IRCall(pNode node){
     currentScope->type = CALL_SCOPE;
 
     TreeNode this = newTreeNode();
-    this->name = TreeNodeName[ESEQ];
+    this->name = TreeNodeName[SEQ];
     this->pos = node->pos;
     this->numOfChild = 2;
     this->childs = newNodeList(2);
