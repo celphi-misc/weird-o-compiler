@@ -382,6 +382,7 @@ int main(int argc, char **argv)
         fprintf(stderr, "\t-a\tGenerating AST in JSON\n");
         fprintf(stderr, "\t-i\tGenerating IR tree in JSON\n");
         fprintf(stderr, "\t-s\tGenerating symbol table for scopes in JSON\n");
+        fprintf(stderr, "\t-c\tGenerating asembly\n");
         return -1;
     }
     yyparse();
